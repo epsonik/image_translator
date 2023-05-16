@@ -52,7 +52,7 @@ config_coco14 = {
     "images_names_file_path": data_path + "images/coco2014/karpathy/cocotalk.json",
     "captions_file_path": data_path + "images/coco2014/karpathy/dataset_coco.json",
     "annotations_train_file_path": data_path + "images/coco2014/official/annotations/instances_train2014.json",
-    "z": data_path + "images/coco2014/official/annotations/instances_val2014.json",
+    "annotations_test_file_path": data_path + "images/coco2014/official/annotations/instances_val2014.json",
     "data_name": "coco14",
     "language": "eng"
 }
