@@ -218,10 +218,9 @@ def load_all_bbox_categories_coco(dataset_configuration):
     def get_class(coco_data, class_id):
         all_classes_mapping = coco_data['categories']
         for classid in all_classes_mapping:
-            print("classId")
-            print(classid)
             if classid['id'] == class_id:
                 class_name = classid['name']
+                print(class_name)
                 try:
                     return class_name
                 except:
@@ -237,6 +236,8 @@ def load_all_bbox_categories_coco(dataset_configuration):
             if image_id not in all_annotations:
                 all_annotations[image_id] = list()
             all_annotations[image_id].append(get_class(coco_data, ann["category_id"]))
+        print("all annotations")
+        print(all_annotations)
         for ix in range(len(coco_data['images'])):
             img = coco_data['images'][ix]
             image_filename = img['file_name'].rsplit(".", 1)[0]
