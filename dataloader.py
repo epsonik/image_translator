@@ -220,7 +220,6 @@ def load_all_bbox_categories_coco(dataset_configuration):
         for classid in all_classes_mapping:
             if classid['id'] == class_id:
                 class_name = classid['name']
-                print(class_name)
                 try:
                     return class_name
                 except:
