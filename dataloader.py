@@ -238,13 +238,13 @@ def load_all_bbox_categories_coco(dataset_configuration):
         print("all captions")
         import itertools
         print( dict(itertools.islice(all_annotations.items(), 10)))
-        # for ix in range(len(coco_data['images'])):
-        #     img = coco_data['images'][ix]
-        #     image_filename = img['file_name'].rsplit(".", 1)[0]
-        #     if image_filename.find("/") != -1:
-        #         image_filename = img['file_path'].rsplit("/", 1)[1].rsplit(".", 1)[0]
-        #     image_id = img["id"]
-        #     all_annotations2[image_filename] = all_annotations[image_id]
+        for ix in range(len(coco_data['images'])):
+            img = coco_data['images'][ix]
+            image_filename = img['file_name'].rsplit(".", 1)[0]
+            if image_filename.find("/") != -1:
+                image_filename = img['file_path'].rsplit("/", 1)[1].rsplit(".", 1)[0]
+            image_id = img["id"]
+            all_annotations2[image_filename] = all_annotations[image_id]
 
     process(annotations_train_file_path)
     process(annotations_test_file_path)
