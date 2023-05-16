@@ -234,15 +234,17 @@ def load_all_bbox_categories_coco(dataset_configuration):
             image_id = ann["image_id"]
             if image_id not in all_annotations:
                 all_annotations[image_id] = list()
-
+            print()
             all_annotations[image_id].append(get_class(coco_data, ann["category_id"]))
-
+        print(all_annotations)
         for ix in range(len(coco_data['images'])):
             img = coco_data['images'][ix]
             image_filename = img['file_name'].rsplit(".", 1)[0]
             if image_filename.find("/") != -1:
                 image_filename = img['file_path'].rsplit("/", 1)[1].rsplit(".", 1)[0]
             image_id = img["id"]
+            print(image_filename)
+            print(all_annotations[image_id])
             all_annotations2[image_filename] = all_annotations[image_id]
 
     process(annotations_train_file_path)
@@ -334,7 +336,7 @@ def load_dataset(configuration):
             print("Loading all captions")
             all_captions = load_all_captions_coco(dataset_configuration["captions_file_path"])
             print("All captions loaded")
-            print("Nuber of all captions: ", len(all_captions))
+            print("Number of all captions: ", len(all_captions))
             all_bbox_categories = load_all_bbox_categories_coco(dataset_configuration)
             print("All images with coresponding categories loaded")
             print("Number of images with categories: ", len(all_captions))
