@@ -156,10 +156,10 @@ def load_images_coco(configuration):
         # images from val and test are assigned to the test split
         if img['split'] == 'train':
             train_images_mapping[image_filename] = file_path
-        # elif img['split'] == 'val':
-        #     test_images_mapping[image_filename] = file_path
-        elif img['split'] == 'test':
+        elif img['split'] == 'val':
             test_images_mapping[image_filename] = file_path
+        # elif img['split'] == 'test':
+        #     test_images_mapping[image_filename] = file_path
         elif img['split'] == 'restval':
             train_images_mapping[image_filename] = file_path
 
