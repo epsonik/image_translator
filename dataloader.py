@@ -235,6 +235,7 @@ def load_all_bbox_categories_coco(dataset_configuration):
             if image_id not in all_annotations:
                 all_annotations[image_id] = list()
             all_annotations[image_id].append(get_class(coco_data, ann["category_id"]))
+        print("all captions")
         print(all_annotations)
         for ix in range(len(coco_data['images'])):
             img = coco_data['images'][ix]
