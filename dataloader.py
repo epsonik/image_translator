@@ -218,6 +218,7 @@ def load_all_bbox_categories_coco(dataset_configuration):
     def get_class(coco_data, class_id):
         all_classes_mapping = coco_data['categories']
         for classid in all_classes_mapping:
+            print(classid)
             if classid['id'] == class_id:
                 class_name = classid['name']
                 try:
