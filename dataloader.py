@@ -239,7 +239,7 @@ def load_all_bbox_categories_coco(dataset_configuration):
         import itertools
         print(dict(itertools.islice(all_annotations.items(), 10)))
         print(len(coco_data['images']))
-        print(len(coco_data['annotations']))
+        print(len(all_annotations))
         for ix in range(len(coco_data['images'])):
             img = coco_data['images'][ix]
             image_filename = img['file_name'].rsplit(".", 1)[0]
