@@ -236,7 +236,8 @@ def load_all_bbox_categories_coco(dataset_configuration):
                 all_annotations[image_id] = list()
             all_annotations[image_id].append(get_class(coco_data, ann["category_id"]))
         print("all captions")
-        print(list(all_annotations)[:10])
+        import itertools
+        print( dict(itertools.islice(all_annotations.items(), 10)))
         # for ix in range(len(coco_data['images'])):
         #     img = coco_data['images'][ix]
         #     image_filename = img['file_name'].rsplit(".", 1)[0]
