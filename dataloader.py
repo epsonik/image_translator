@@ -215,8 +215,8 @@ def load_all_bbox_categories_coco(dataset_configuration):
     all_annotations = dict()
     all_annotations2 = dict()
 
-    def get_class(annotations_file_path, class_id):
-        all_classes_mapping = annotations_file_path['categories']
+    def get_class(coco_data, class_id):
+        all_classes_mapping = coco_data['categories']
         for classid in all_classes_mapping:
             if classid['id'] == class_id:
                 class_name = classid['name']
@@ -227,16 +227,18 @@ def load_all_bbox_categories_coco(dataset_configuration):
                     print(f"Id: {classid}")
 
     def process(annotations_file_path):
+        with open(annotations_file_path, 'r') as f:
+            coco_data = json.load(f)
 
-        for ann in annotations_file_path["annotations"]:
+        for ann in coco_data["annotations"]:
             image_id = ann["image_id"]
             if image_id not in all_annotations:
                 all_annotations[image_id] = list()
 
-            all_annotations[image_id].append(get_class(annotations_file_path, ann["category_id"]))
+            all_annotations[image_id].append(get_class(coco_data, ann["category_id"]))
 
-        for ix in range(len(annotations_file_path['images'])):
-            img = annotations_file_path['images'][ix]
+        for ix in range(len(coco_data['images'])):
+            img = coco_data['images'][ix]
             image_filename = img['file_name'].rsplit(".", 1)[0]
             if image_filename.find("/") != -1:
                 image_filename = img['file_path'].rsplit("/", 1)[1].rsplit(".", 1)[0]
