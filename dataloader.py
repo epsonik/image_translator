@@ -4,7 +4,7 @@ import json
 import config_datasets
 
 
-def split_data(all_descriptions, train_images, test_images, val_images, restval_images):
+def split_data(all_descriptions, train_images, test_images, val_images):
     """
         Split captions to train and test sets  and map image id to the set of captions
     Parameters
@@ -31,7 +31,6 @@ def split_data(all_descriptions, train_images, test_images, val_images, restval_
     train_images_mapping = dict()
     test_images_mapping = dict()
     val_images_mapping = dict()
-    restval_images_mapping = dict()
     for x in list(all_descriptions.keys()):
         if x in train_images:
             train_images_mapping[x] = all_descriptions[x]
