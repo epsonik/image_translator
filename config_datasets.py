@@ -1,5 +1,25 @@
 #### Config
 data_path = "/home2/data/"
+general = {
+    "results_directory": "./results",
+    "coco-caption_path": "./coco-caption",
+    "pl_spacy_model": data_path + 'images/pl_spacy_model',
+    "START": 'START',
+    "STOP": 'STOP',
+    "word_count_threshold": 10
+}
+glove = {
+    "eng": {
+        "word_embedings_path": data_path + "images/glove/glove.6B.200d.txt",
+        "embedings_dim": 199
+    }
+}
+fastText = {
+    "eng": {
+        "word_embedings_path": data_path + "text_models/fastText/wiki-news-300d-1M-subword.vec",
+        "embedings_dim": 300
+    }
+}
 config_flickr8k = {
     "images_dir": data_path + "images/flickr8k/Images/",
     "train_images_names_file_path": data_path + "images/flickr8k/Flickr8k_text/Flickr_8k.trainImages.txt",

@@ -2,7 +2,7 @@ import pickle
 from time import time
 import numpy as np
 
-from config import general, word2Vec
+from config_translator import general
 import string
 from keras.applications.inception_v3 import InceptionV3
 from keras.applications.vgg16 import VGG16
@@ -17,7 +17,6 @@ from keras.applications.xception import Xception
 from keras.preprocessing import image
 from keras.models import Model
 import itertools
-import gensim
 
 import os, codecs
 from tqdm import tqdm
@@ -429,13 +428,19 @@ def define_learning_data(data):
             return subset_data["test"]['test_images_mapping_original'], \
                    subset_data["test"]['test_captions_mapping_original'], \
                    subset_data["test"]['test_bbox_categories_mapping_original']
+        if data.configuration[split]['subset_name'] == 'val':
+            return subset_data["val"]['val_images_mapping_original'], \
+                   subset_data["val"]['val_captions_mapping_original'], \
+                   subset_data["val"]['val_bbox_categories_mapping_original']
 
     train_images_mapping, train_captions_mapping, train_bbox_categories_mapping = get_split("train", data.train)
     test_images_mapping, test_captions_mapping, test_bbox_categories_mapping = get_split("test", data.test)
+    val_images_mapping, val_captions_mapping, val_bbox_categories_mapping = get_split("val", data.test)
 
-    return train_images_mapping, train_captions_mapping, train_bbox_categories_mapping, test_images_mapping, test_captions_mapping, test_bbox_categories_mapping, \
-           data.train[
-               "all_captions"]
+    return train_images_mapping, train_captions_mapping, train_bbox_categories_mapping, \
+           test_images_mapping, test_captions_mapping, test_bbox_categories_mapping, \
+           val_images_mapping, val_captions_mapping, val_bbox_categories_mapping, \
+           data.train["all_captions"]
 
 
 def create_dir_structure(configuration):
@@ -468,8 +473,11 @@ def preprocess_data(data):
     train_images_mapping, \
     train_captions_mapping, \
     test_images_mapping, \
-    data.test_captions_mapping, \
+    test_captions_mapping, \
+    val_images_mapping, \
+    val_captions_mapping, \
     all_captions = define_learning_data(data)
+    print("Final splits")
     print("Number of train images: ", len(train_images_mapping))
     print("Number of test images: ", len(test_images_mapping))
     print("Number of train captions: ", len(train_captions_mapping))

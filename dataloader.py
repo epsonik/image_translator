@@ -337,7 +337,7 @@ def load_dataset(configuration):
             print("Loading images splits")
             train_images_mapping_original, test_images_mapping_original, val_images_mapping_original = load_images_coco(
                 dataset_configuration)
-            print("Images splits loaded")
+            print("Images splits loaded for {} split".format(split_name))
             print("Number of train images: ", len(train_images_mapping_original))
             print("Number of test images: ", len(test_images_mapping_original))
             print("Number of val images: ", len(val_images_mapping_original))
@@ -370,21 +370,21 @@ def load_dataset(configuration):
             # print("All images with coresponding categories loaded")
             # print("Number of images with categories: ", len(all_captions))
         # Assign captions to specific splits
-        print("Loading captions splits")
-        train_captions_mapping_original, test_captions_mapping_original,\
+        print("Loading captions splits for {}".format(split_name))
+        train_captions_mapping_original, test_captions_mapping_original, \
         val_captions_mapping_original, restval_captions_mapping_original = split_data(
             all_captions,
             list(train_images_mapping_original.keys()),
             list(test_images_mapping_original.keys()),
             list(val_images_mapping_original.keys()))
-        print("Captions splits loaded")
+        print("Captions splits loaded for {}".format(split_name))
         print("Number of train captions: ", len(train_captions_mapping_original))
         print("Number of test captions: ", len(test_captions_mapping_original))
         print("Number of val captions: ", len(val_captions_mapping_original))
 
         print("Loading bbox_categories of images splits")
-        train_bbox_categories_mapping_original, test_bbox_categories_mapping_original,\
-        val_bbox_categories_mapping_original, restval_bbox_categories_mapping_original  = split_data(
+        train_bbox_categories_mapping_original, test_bbox_categories_mapping_original, \
+        val_bbox_categories_mapping_original, restval_bbox_categories_mapping_original = split_data(
             all_bbox_categories,
             list(train_images_mapping_original.keys()),
             list(test_images_mapping_original.keys()),
