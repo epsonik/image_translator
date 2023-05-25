@@ -39,9 +39,7 @@ def split_data(all_descriptions, train_images, test_images, val_images, restval_
             test_images_mapping[x] = all_descriptions[x]
         if x in val_images:
             val_images_mapping[x] = all_descriptions[x]
-        if x in restval_images:
-            val_images_mapping[x] = all_descriptions[x]
-    return train_images_mapping, test_images_mapping, val_images_mapping, restval_images_mapping
+    return train_images_mapping, test_images_mapping, val_images_mapping
 
 
 def get_dataset_configuration(dataset_name):
@@ -372,7 +370,7 @@ def load_dataset(configuration):
         # Assign captions to specific splits
         print("Loading captions splits for {}".format(split_name))
         train_captions_mapping_original, test_captions_mapping_original, \
-        val_captions_mapping_original, restval_captions_mapping_original = split_data(
+        val_captions_mapping_original = split_data(
             all_captions,
             list(train_images_mapping_original.keys()),
             list(test_images_mapping_original.keys()),
@@ -384,7 +382,7 @@ def load_dataset(configuration):
 
         print("Loading bbox_categories of images splits")
         train_bbox_categories_mapping_original, test_bbox_categories_mapping_original, \
-        val_bbox_categories_mapping_original, restval_bbox_categories_mapping_original = split_data(
+        val_bbox_categories_mapping_original = split_data(
             all_bbox_categories,
             list(train_images_mapping_original.keys()),
             list(test_images_mapping_original.keys()),
