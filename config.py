@@ -1284,7 +1284,6 @@ config_mixed_coco14_coco14_glove = {
     "train": {"dataset_name": "coco14", "subset_name": "train"},
     "test": {"dataset_name": "coco14", "subset_name": "test"},
     "val": {"dataset_name": "coco14", "subset_name": "val"},
-    "restval": {"dataset_name": "coco14", "subset_name": "restval"},
     "save_ix_to_word": False,
     "train_model": False,
     "save_model": False,

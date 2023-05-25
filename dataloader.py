@@ -168,10 +168,8 @@ def load_images_coco(configuration):
             val_images_mapping[image_filename] = file_path
         elif img['split'] == 'test':
             test_images_mapping[image_filename] = file_path
-        elif img['split'] == 'restval':
-            restval_images_mapping[image_filename] = file_path
 
-    return train_images_mapping, test_images_mapping, val_images_mapping, restval_images_mapping
+    return train_images_mapping, test_images_mapping, val_images_mapping
 
 
 def load_all_captions_coco(caption_file_path):
@@ -337,13 +335,12 @@ def load_dataset(configuration):
         if dataset_configuration["data_name"] in ["flickr30k", "coco17", "coco14"]:
             # Load train images and test images and assign them to specific splits
             print("Loading images splits")
-            train_images_mapping_original, test_images_mapping_original, val_images_mapping_original, restval_images_mapping_original = load_images_coco(
+            train_images_mapping_original, test_images_mapping_original, val_images_mapping_original = load_images_coco(
                 dataset_configuration)
             print("Images splits loaded")
             print("Number of train images: ", len(train_images_mapping_original))
             print("Number of test images: ", len(test_images_mapping_original))
             print("Number of val images: ", len(val_images_mapping_original))
-            print("Number of restval images: ", len(restval_images_mapping_original))
             # Load all captions from dataset, that is COCO type
             print("Loading all captions")
             all_captions = load_all_captions_coco(dataset_configuration["captions_file_path"])
@@ -379,13 +376,11 @@ def load_dataset(configuration):
             all_captions,
             list(train_images_mapping_original.keys()),
             list(test_images_mapping_original.keys()),
-            list(val_images_mapping_original.keys()),
-            list(restval_images_mapping_original.keys()))
+            list(val_images_mapping_original.keys()))
         print("Captions splits loaded")
         print("Number of train captions: ", len(train_captions_mapping_original))
         print("Number of test captions: ", len(test_captions_mapping_original))
         print("Number of val captions: ", len(val_captions_mapping_original))
-        print("Number of restval captions: ", len(restval_images_mapping_original))
 
         print("Loading bbox_categories of images splits")
         train_bbox_categories_mapping_original, test_bbox_categories_mapping_original,\
@@ -393,13 +388,11 @@ def load_dataset(configuration):
             all_bbox_categories,
             list(train_images_mapping_original.keys()),
             list(test_images_mapping_original.keys()),
-            list(val_images_mapping_original.keys()),
-            list(restval_images_mapping_original.keys()))
+            list(val_images_mapping_original.keys()))
         print("Categories of bbox  in images loaded")
         print("Number of train images with categories loaded: ", len(train_bbox_categories_mapping_original))
         print("Number of test images with categories loaded: ", len(test_bbox_categories_mapping_original))
         print("Number of val images with categories loaded: ", len(val_bbox_categories_mapping_original))
-        print("Number of restval images with categories loaded: ", len(restval_bbox_categories_mapping_original))
         return {
             "train": {
                 "train_images_mapping_original": train_images_mapping_original,
@@ -416,11 +409,6 @@ def load_dataset(configuration):
                 "val_captions_mapping_original": val_captions_mapping_original,
                 "val_categories_mapping_original": val_bbox_categories_mapping_original
             },
-            "restval": {
-                "restval_images_mapping_original": restval_images_mapping_original,
-                "restval_captions_mapping_original": restval_captions_mapping_original,
-                "restval_categories_mapping_original": restval_bbox_categories_mapping_original
-            },
             "all_captions": all_captions,
             "language": dataset_configuration['language']
         }
@@ -431,14 +419,12 @@ def load_dataset(configuration):
     test = get_data_for_split("test")
     print("Loading val dataset")
     val = get_data_for_split("val")
-    print("Loading restval dataset")
-    restval = get_data_for_split("restval")
     language = train['language']
-    return train, test, val, restval, language
+    return train, test, val, language
 
 
 class DataLoader:
     def __init__(self, configuration):
         print("Loading dataset")
-        self.train, self.test, self.val, self.restval, self.language = load_dataset(configuration)
+        self.train, self.test, self.val, self.language = load_dataset(configuration)
         self.configuration = configuration
