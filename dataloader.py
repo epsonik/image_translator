@@ -165,7 +165,8 @@ def load_images_coco(configuration):
             val_images_mapping[image_filename] = file_path
         elif img['split'] == 'test':
             test_images_mapping[image_filename] = file_path
-
+        elif img['split'] == 'restval':
+            val_images_mapping[image_filename] = file_path
     return train_images_mapping, test_images_mapping, val_images_mapping
 
 
@@ -412,10 +413,13 @@ def load_dataset(configuration):
 
     print("Loading train dataset")
     train = get_data_for_split("train")
+    print("---------------------")
     print("Loading test dataset")
     test = get_data_for_split("test")
+    print("---------------------")
     print("Loading val dataset")
     val = get_data_for_split("val")
+    print("---------------------")
     language = train['language']
     return train, test, val, language
 
