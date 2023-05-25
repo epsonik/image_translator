@@ -388,10 +388,10 @@ config_mixed_coco14_coco14_Xception_fastText = {
 config_mixed_coco14_coco14_inception_glove = {
     "train": {"dataset_name": "coco14", "subset_name": "train"},
     "test": {"dataset_name": "coco14", "subset_name": "test"},
-    "encode_images": False,
-    "save_ix_to_word": False,
-    "train_model": False,
-    "save_model": False,
+    "encode_images": True,
+    "save_ix_to_word": True,
+    "train_model": True,
+    "save_model": True,
     "ixtoword_path": "ixtoword.pkl",
     "wordtoix_path": "wordtoix.pkl",
     "pickles_dir": "/Pickle",
@@ -1277,5 +1277,23 @@ config_mixed_coco14_flickr30k_resnet50_fastText = {
     "data_name": "mixed_coco14_flickr30k_resnet50_fastText",
     "images_processor": "resnet50",
     "text_processor": "fastText",
+    "continue_training": False
+}
+
+config_mixed_coco14_coco14_glove = {
+    "train": {"dataset_name": "coco14", "subset_name": "train"},
+    "test": {"dataset_name": "coco14", "subset_name": "test"},
+    "val": {"dataset_name": "coco14", "subset_name": "val"},
+    "restval": {"dataset_name": "coco14", "subset_name": "restval"},
+    "save_ix_to_word": False,
+    "train_model": False,
+    "save_model": False,
+    "ixtoword_path": "ixtoword.pkl",
+    "wordtoix_path": "wordtoix.pkl",
+    "pickles_dir": "/Pickle",
+    "model_save_dir": "/model_weights",
+    "model_save_path": "/model_Base_3_Batch_Komninos.h5",
+    "data_name": "mixed_coco14_coco14_glove",
+    "text_processor": "glove",
     "continue_training": False
 }

@@ -4,7 +4,7 @@ import json
 import config_datasets
 
 
-def split_data(all_descriptions, train_images, test_images):
+def split_data(all_descriptions, train_images, test_images, val_images, restval_images):
     """
         Split captions to train and test sets  and map image id to the set of captions
     Parameters
@@ -30,12 +30,18 @@ def split_data(all_descriptions, train_images, test_images):
     """
     train_images_mapping = dict()
     test_images_mapping = dict()
+    val_images_mapping = dict()
+    restval_images_mapping = dict()
     for x in list(all_descriptions.keys()):
         if x in train_images:
             train_images_mapping[x] = all_descriptions[x]
         if x in test_images:
             test_images_mapping[x] = all_descriptions[x]
-    return train_images_mapping, test_images_mapping
+        if x in val_images:
+            val_images_mapping[x] = all_descriptions[x]
+        if x in restval_images:
+            val_images_mapping[x] = all_descriptions[x]
+    return train_images_mapping, test_images_mapping, val_images_mapping, restval_images_mapping
 
 
 def get_dataset_configuration(dataset_name):
@@ -139,6 +145,8 @@ def load_images_coco(configuration):
     info = json.load(open(file_with_images_def))
     train_images_mapping = dict()
     test_images_mapping = dict()
+    val_images_mapping = dict()
+    restval_images_mapping = dict()
     # iterate over all images from COCO dataset listed in file configuration["images_names_file_path"]
     for ix in range(len(info['images'])):
 
@@ -157,13 +165,13 @@ def load_images_coco(configuration):
         if img['split'] == 'train':
             train_images_mapping[image_filename] = file_path
         elif img['split'] == 'val':
+            val_images_mapping[image_filename] = file_path
+        elif img['split'] == 'test':
             test_images_mapping[image_filename] = file_path
-        # elif img['split'] == 'test':
-        #     test_images_mapping[image_filename] = file_path
         elif img['split'] == 'restval':
-            train_images_mapping[image_filename] = file_path
+            restval_images_mapping[image_filename] = file_path
 
-    return train_images_mapping, test_images_mapping
+    return train_images_mapping, test_images_mapping, val_images_mapping, restval_images_mapping
 
 
 def load_all_captions_coco(caption_file_path):
@@ -212,8 +220,8 @@ def load_all_bbox_categories_coco(dataset_configuration):
 
     annotations_train_file_path = dataset_configuration["annotations_train_file_path"]
     annotations_test_file_path = dataset_configuration["annotations_test_file_path"]
+    all_annotations_by_img_id = dict()
     all_annotations = dict()
-    all_annotations2 = dict()
 
     def get_class(coco_data, class_id):
         all_classes_mapping = coco_data['categories']
@@ -226,32 +234,28 @@ def load_all_bbox_categories_coco(dataset_configuration):
                     print("---> Class not found! <---")
                     print(f"Id: {classid}")
 
-    def process(annotations_file_path):
+    def process(annotations_file_path, split_name):
         with open(annotations_file_path, 'r') as f:
             coco_data = json.load(f)
 
         for ann in coco_data["annotations"]:
             image_id = ann["image_id"]
-            if image_id not in all_annotations:
-                all_annotations[image_id] = list()
-            all_annotations[image_id].append(get_class(coco_data, ann["category_id"]))
-        print("all captions")
-        import itertools
-        print(dict(itertools.islice(all_annotations.items(), 10)))
-        print(len(coco_data['images']))
-        print(len(all_annotations))
+            if image_id not in all_annotations_by_img_id:
+                all_annotations_by_img_id[image_id] = list()
+            all_annotations_by_img_id[image_id].append(get_class(coco_data, ann["category_id"]))
+        print("Number of annotation in {} {}".format(split_name, len(all_annotations_by_img_id)))
         for ix in range(len(coco_data['images'])):
             img = coco_data['images'][ix]
             image_filename = img['file_name'].rsplit(".", 1)[0]
             if image_filename.find("/") != -1:
                 image_filename = img['file_path'].rsplit("/", 1)[1].rsplit(".", 1)[0]
             image_id = img["id"]
-            if image_id in all_annotations.keys():
-                all_annotations2[image_filename] = all_annotations[image_id]
+            if image_id in all_annotations_by_img_id.keys():
+                all_annotations[image_filename] = all_annotations_by_img_id[image_id]
 
-    process(annotations_train_file_path)
-    process(annotations_test_file_path)
-    return all_annotations2
+    process(annotations_train_file_path, "train")
+    process(annotations_test_file_path, "test")
+    return all_annotations
 
 
 def load_images_flickr(images_dir, train_images_file_path, test_images_file_path):
@@ -324,24 +328,27 @@ def load_dataset(configuration):
     def get_data_for_split(split_name):
         # Load dataset configuration, by the name of the dataset assigned for training/testing
         dataset_configuration = get_dataset_configuration(configuration[split_name]["dataset_name"])
+        all_bbox_categories = load_all_bbox_categories_coco(dataset_configuration)
+        print("All images with coresponding categories loaded")
+        print("Number of images with categories: ", len(all_bbox_categories))
         # Therefore Flickr and COCO have different file and data structures, to show captions and split of data
         # different methods for loading captions and images are used.
         # Datasets Flickr30k, COCO2017, COCO2014 have the same strucutre of files with captions and split informations.
         if dataset_configuration["data_name"] in ["flickr30k", "coco17", "coco14"]:
             # Load train images and test images and assign them to specific splits
             print("Loading images splits")
-            train_images_mapping_original, test_images_mapping_original = load_images_coco(dataset_configuration)
+            train_images_mapping_original, test_images_mapping_original, val_images_mapping_original, restval_images_mapping_original = load_images_coco(
+                dataset_configuration)
             print("Images splits loaded")
             print("Number of train images: ", len(train_images_mapping_original))
             print("Number of test images: ", len(test_images_mapping_original))
+            print("Number of val images: ", len(val_images_mapping_original))
+            print("Number of restval images: ", len(restval_images_mapping_original))
             # Load all captions from dataset, that is COCO type
             print("Loading all captions")
             all_captions = load_all_captions_coco(dataset_configuration["captions_file_path"])
             print("All captions loaded")
             print("Number of all captions: ", len(all_captions))
-            all_bbox_categories = load_all_bbox_categories_coco(dataset_configuration)
-            print("All images with coresponding categories loaded")
-            print("Number of images with categories: ", len(all_captions))
 
         # Datasets Flickr30k, Flickr8k_polish, AIDe, Flickr8k  have the same strucutre of files with captions and split informations.
         if dataset_configuration["data_name"] in ["flickr30k_polish", "flickr8k_polish", "aide", "flickr8k"]:
@@ -367,24 +374,32 @@ def load_dataset(configuration):
             # print("Number of images with categories: ", len(all_captions))
         # Assign captions to specific splits
         print("Loading captions splits")
-        train_captions_mapping_original, test_captions_mapping_original = split_data(all_captions,
-                                                                                     list(
-                                                                                         train_images_mapping_original.keys()),
-                                                                                     list(
-                                                                                         test_images_mapping_original.keys()))
+        train_captions_mapping_original, test_captions_mapping_original,\
+        val_captions_mapping_original, restval_captions_mapping_original = split_data(
+            all_captions,
+            list(train_images_mapping_original.keys()),
+            list(test_images_mapping_original.keys()),
+            list(val_images_mapping_original.keys()),
+            list(restval_images_mapping_original.keys()))
         print("Captions splits loaded")
         print("Number of train captions: ", len(train_captions_mapping_original))
-        print("Number of test test: ", len(test_captions_mapping_original))
+        print("Number of test captions: ", len(test_captions_mapping_original))
+        print("Number of val captions: ", len(val_captions_mapping_original))
+        print("Number of restval captions: ", len(restval_images_mapping_original))
 
         print("Loading bbox_categories of images splits")
-        train_bbox_categories_mapping_original, test_bbox_categories_mapping_original = split_data(all_bbox_categories,
-                                                                                                   list(
-                                                                                                       train_images_mapping_original.keys()),
-                                                                                                   list(
-                                                                                                       test_images_mapping_original.keys()))
+        train_bbox_categories_mapping_original, test_bbox_categories_mapping_original,\
+        val_bbox_categories_mapping_original, restval_bbox_categories_mapping_original  = split_data(
+            all_bbox_categories,
+            list(train_images_mapping_original.keys()),
+            list(test_images_mapping_original.keys()),
+            list(val_images_mapping_original.keys()),
+            list(restval_images_mapping_original.keys()))
         print("Categories of bbox  in images loaded")
-        print("Number of train images with categories loaded: ", len(train_captions_mapping_original))
-        print("Number of test images with categories loaded: ", len(test_captions_mapping_original))
+        print("Number of train images with categories loaded: ", len(train_bbox_categories_mapping_original))
+        print("Number of test images with categories loaded: ", len(test_bbox_categories_mapping_original))
+        print("Number of val images with categories loaded: ", len(val_bbox_categories_mapping_original))
+        print("Number of restval images with categories loaded: ", len(restval_bbox_categories_mapping_original))
         return {
             "train": {
                 "train_images_mapping_original": train_images_mapping_original,
@@ -396,6 +411,16 @@ def load_dataset(configuration):
                 "test_captions_mapping_original": test_captions_mapping_original,
                 "test_categories_mapping_original": test_bbox_categories_mapping_original
             },
+            "val": {
+                "val_images_mapping_original": val_images_mapping_original,
+                "val_captions_mapping_original": val_captions_mapping_original,
+                "val_categories_mapping_original": val_bbox_categories_mapping_original
+            },
+            "restval": {
+                "restval_images_mapping_original": restval_images_mapping_original,
+                "restval_captions_mapping_original": restval_captions_mapping_original,
+                "restval_categories_mapping_original": restval_bbox_categories_mapping_original
+            },
             "all_captions": all_captions,
             "language": dataset_configuration['language']
         }
@@ -404,12 +429,16 @@ def load_dataset(configuration):
     train = get_data_for_split("train")
     print("Loading test dataset")
     test = get_data_for_split("test")
+    print("Loading val dataset")
+    val = get_data_for_split("val")
+    print("Loading restval dataset")
+    restval = get_data_for_split("restval")
     language = train['language']
-    return train, test, language
+    return train, test, val, restval, language
 
 
 class DataLoader:
     def __init__(self, configuration):
         print("Loading dataset")
-        self.train, self.test, self.language = load_dataset(configuration)
+        self.train, self.test, self.val, self.restval, self.language = load_dataset(configuration)
         self.configuration = configuration

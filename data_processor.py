@@ -422,16 +422,20 @@ def define_learning_data(data):
     def get_split(split, subset_data):
         if data.configuration[split]['subset_name'] == 'train':
             return subset_data["train"]['train_images_mapping_original'], \
-                   subset_data["train"]['train_captions_mapping_original']
+                   subset_data["train"]['train_captions_mapping_original'], \
+                   subset_data["train"]['train_bbox_categories_mapping_original']
+
         if data.configuration[split]['subset_name'] == 'test':
             return subset_data["test"]['test_images_mapping_original'], \
-                   subset_data["test"]['test_captions_mapping_original']
+                   subset_data["test"]['test_captions_mapping_original'], \
+                   subset_data["test"]['test_bbox_categories_mapping_original']
 
-    train_images_mapping, train_captions_mapping = get_split("train", data.train)
-    test_images_mapping, test_captions_mapping = get_split("test", data.test)
+    train_images_mapping, train_captions_mapping, train_bbox_categories_mapping = get_split("train", data.train)
+    test_images_mapping, test_captions_mapping, test_bbox_categories_mapping = get_split("test", data.test)
 
-    return train_images_mapping, train_captions_mapping, test_images_mapping, test_captions_mapping, data.train[
-        "all_captions"]
+    return train_images_mapping, train_captions_mapping, train_bbox_categories_mapping, test_images_mapping, test_captions_mapping, test_bbox_categories_mapping, \
+           data.train[
+               "all_captions"]
 
 
 def create_dir_structure(configuration):
