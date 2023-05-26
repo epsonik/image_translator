@@ -435,7 +435,7 @@ def define_learning_data(data):
 
     train_images_mapping, train_captions_mapping, train_bbox_categories_mapping = get_split("train", data.train)
     test_images_mapping, test_captions_mapping, test_bbox_categories_mapping = get_split("test", data.test)
-    val_images_mapping, val_captions_mapping, val_bbox_categories_mapping = get_split("val", data.test)
+    val_images_mapping, val_captions_mapping, val_bbox_categories_mapping = get_split("val", data.val)
 
     return train_images_mapping, train_captions_mapping, train_bbox_categories_mapping, \
            test_images_mapping, test_captions_mapping, test_bbox_categories_mapping, \
@@ -481,15 +481,13 @@ def preprocess_data(data):
     print("Number of train images: ", len(train_images_mapping))
     print("Number of test images: ", len(test_images_mapping))
     print("Number of train captions: ", len(train_captions_mapping))
-    print("Number of test captions: ", len(data.test_captions_mapping))
+    print("Number of test captions: ", len(test_captions_mapping))
     clean_descriptions(train_captions_mapping, data.language)
     print("Descriptions cleaned.")
     print(train_captions_mapping[list(train_images_mapping.keys())[0]])
     data.train_captions_wrapped = wrap_captions_in_start_stop(train_captions_mapping)
     print("Descriptions wraped into start and stop words.")
     print(data.train_captions_wrapped[list(data.train_captions_wrapped.keys())[0]])
-    # data.encoded_images_train, data.encoded_images_test = preprocess_images(train_images_mapping, test_images_mapping,
-    #                                                                         data.configuration)
     all_train_captions = get_all_train_captions_list(data.train_captions_wrapped)
     print("Number of training captions ", len(all_train_captions))
     data.max_length = get_max_length(all_train_captions)

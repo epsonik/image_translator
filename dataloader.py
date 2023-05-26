@@ -4,7 +4,7 @@ import json
 import config_datasets
 
 
-def split_data(all_descriptions, train_images, test_images, val_images):
+def split_data(intersection, all_descriptions, train_images, test_images, val_images):
     """
         Split captions to train and test sets  and map image id to the set of captions
     Parameters
@@ -31,12 +31,12 @@ def split_data(all_descriptions, train_images, test_images, val_images):
     train_images_mapping = dict()
     test_images_mapping = dict()
     val_images_mapping = dict()
-    for x in list(all_descriptions.keys()):
-        if x in train_images:
+    for x in list(intersection):
+        if x in list(train_images.keys()):
             train_images_mapping[x] = all_descriptions[x]
-        if x in test_images:
+        if x in list(test_images.keys()):
             test_images_mapping[x] = all_descriptions[x]
-        if x in val_images:
+        if x in list(val_images.keys()):
             val_images_mapping[x] = all_descriptions[x]
     return train_images_mapping, test_images_mapping, val_images_mapping
 
@@ -166,7 +166,7 @@ def load_images_coco(configuration):
         elif img['split'] == 'test':
             test_images_mapping[image_filename] = file_path
         elif img['split'] == 'restval':
-            val_images_mapping[image_filename] = file_path
+            train_images_mapping[image_filename] = file_path
     return train_images_mapping, test_images_mapping, val_images_mapping
 
 
@@ -326,7 +326,7 @@ def load_dataset(configuration):
         dataset_configuration = get_dataset_configuration(configuration[split_name]["dataset_name"])
         all_bbox_categories = load_all_bbox_categories_coco(dataset_configuration)
         print("All images with coresponding categories loaded")
-        print("Number of images with categories: ", len(all_bbox_categories))
+        print("Number of images with categories: ", len(all_bbox_categories.keys()))
         # Therefore Flickr and COCO have different file and data structures, to show captions and split of data
         # different methods for loading captions and images are used.
         # Datasets Flickr30k, COCO2017, COCO2014 have the same strucutre of files with captions and split informations.
@@ -367,14 +367,15 @@ def load_dataset(configuration):
             # all_bbox_categories = load_all_bbox_categories_coco(dataset_configuration)
             # print("All images with coresponding categories loaded")
             # print("Number of images with categories: ", len(all_captions))
+
         # Assign captions to specific splits
         print("Loading captions splits for {}".format(split_name))
+        intersection_categories_captions = list(all_bbox_categories.keys() & all_captions.keys())
         train_captions_mapping_original, test_captions_mapping_original, \
-        val_captions_mapping_original = split_data(
-            all_captions,
-            list(train_images_mapping_original.keys()),
-            list(test_images_mapping_original.keys()),
-            list(val_images_mapping_original.keys()))
+        val_captions_mapping_original = split_data(intersection_categories_captions, all_captions,
+                                                   train_images_mapping_original,
+                                                   test_images_mapping_original,
+                                                   val_images_mapping_original)
         print("Captions splits loaded for {}".format(split_name))
         print("Number of train captions: ", len(train_captions_mapping_original))
         print("Number of test captions: ", len(test_captions_mapping_original))
@@ -382,11 +383,10 @@ def load_dataset(configuration):
 
         print("Loading bbox_categories of images splits")
         train_bbox_categories_mapping_original, test_bbox_categories_mapping_original, \
-        val_bbox_categories_mapping_original = split_data(
-            all_bbox_categories,
-            list(train_images_mapping_original.keys()),
-            list(test_images_mapping_original.keys()),
-            list(val_images_mapping_original.keys()))
+        val_bbox_categories_mapping_original = split_data(intersection_categories_captions, all_bbox_categories,
+                                                          train_images_mapping_original,
+                                                          test_images_mapping_original,
+                                                          val_images_mapping_original)
         print("Categories of bbox  in images loaded")
         print("Number of train images with categories loaded: ", len(train_bbox_categories_mapping_original))
         print("Number of test images with categories loaded: ", len(test_bbox_categories_mapping_original))
@@ -411,21 +411,14 @@ def load_dataset(configuration):
             "language": dataset_configuration['language']
         }
 
+    print("---------------------")
     print("Loading train dataset")
     train = get_data_for_split("train")
-    print("---------------------")
-    print("Loading test dataset")
-    test = get_data_for_split("test")
-    print("---------------------")
-    print("Loading val dataset")
-    val = get_data_for_split("val")
-    print("---------------------")
-    language = train['language']
-    return train, test, val, language
+    return train, train, train
 
 
 class DataLoader:
     def __init__(self, configuration):
         print("Loading dataset")
-        self.train, self.test, self.val, self.language = load_dataset(configuration)
+        self.train, self.test, self.val = load_dataset(configuration)
         self.configuration = configuration
