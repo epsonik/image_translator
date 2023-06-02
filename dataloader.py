@@ -395,17 +395,17 @@ def load_dataset(configuration):
             "train": {
                 "train_images_mapping_original": train_images_mapping_original,
                 "train_captions_mapping_original": train_captions_mapping_original,
-                "train_categories_mapping_original": train_bbox_categories_mapping_original
+                "train_bbox_categories_mapping_original": train_bbox_categories_mapping_original
             },
             "test": {
                 "test_images_mapping_original": test_images_mapping_original,
                 "test_captions_mapping_original": test_captions_mapping_original,
-                "test_categories_mapping_original": test_bbox_categories_mapping_original
+                "train_bbox_categories_mapping_original": test_bbox_categories_mapping_original
             },
             "val": {
                 "val_images_mapping_original": val_images_mapping_original,
                 "val_captions_mapping_original": val_captions_mapping_original,
-                "val_categories_mapping_original": val_bbox_categories_mapping_original
+                "train_bbox_categories_mapping_original": val_bbox_categories_mapping_original
             },
             "all_captions": all_captions,
             "all_bbox_categories": all_bbox_categories,
