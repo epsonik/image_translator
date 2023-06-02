@@ -343,7 +343,7 @@ def load_dataset(configuration):
             print("Loading all captions")
             all_captions = load_all_captions_coco(dataset_configuration["captions_file_path"])
             print("All captions loaded")
-            print("Number of all captions: ", len(all_captions))
+            print("Number of all images with captions: ", len(all_captions.keys()))
 
         # Datasets Flickr30k, Flickr8k_polish, AIDe, Flickr8k  have the same strucutre of files with captions and split informations.
         if dataset_configuration["data_name"] in ["flickr30k_polish", "flickr8k_polish", "aide", "flickr8k"]:
@@ -400,12 +400,12 @@ def load_dataset(configuration):
             "test": {
                 "test_images_mapping_original": test_images_mapping_original,
                 "test_captions_mapping_original": test_captions_mapping_original,
-                "train_bbox_categories_mapping_original": test_bbox_categories_mapping_original
+                "test_bbox_categories_mapping_original": test_bbox_categories_mapping_original
             },
             "val": {
                 "val_images_mapping_original": val_images_mapping_original,
                 "val_captions_mapping_original": val_captions_mapping_original,
-                "train_bbox_categories_mapping_original": val_bbox_categories_mapping_original
+                "val_bbox_categories_mapping_original": val_bbox_categories_mapping_original
             },
             "all_captions": all_captions,
             "all_bbox_categories": all_bbox_categories,

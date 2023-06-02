@@ -22,6 +22,9 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 import os, codecs
 from tqdm import tqdm
 from config import fastText, glove
+import string
+import re
+from unicodedata import normalize
 
 
 def isfloat(value):
@@ -140,7 +143,7 @@ def define_images_feature_model(images_processor):
     return preprocess_input, model_new
 
 
-def clean_descriptions(captions_mapping, language):
+def clean_descriptions(captions_mapping):
     """
     Method to:
     *lower all letters
@@ -167,6 +170,30 @@ def clean_descriptions(captions_mapping, language):
             # remove tokens with numbers in them
             desc = [word for word in desc if word.isalpha()]
             desc_list[i] = desc
+
+
+def clear(desc_list):
+    re_print = re.compile('[^%s]' % re.escape(string.printable))
+    # prepare translation table for removing punctuation
+    table = str.maketrans('', '', string.punctuation)
+    clean_pair = list()
+    for sentence in desc_list:
+        # normalize unicode characters
+        sentence = normalize('NFD', sentence).encode('ascii', 'ignore')
+        sentence = sentence.decode('UTF-8')
+        # tokenize on white space
+        sentence = sentence.split()
+        # convert to lowercase
+        sentence = [word.lower() for word in sentence]
+        # remove punctuation from each token
+        sentence = [word.translate(table) for word in sentence]
+        # remove non-printable chars form each token
+        sentence = [re_print.sub('', w) for w in sentence]
+        # remove tokens with numbers in them
+        sentence = [word for word in sentence if word.isalpha()]
+        # store as string
+        clean_pair.append(' '.join(sentence))
+    return desc_list
 
 
 def wrap_captions_in_start_stop(training_captions):
@@ -196,22 +223,24 @@ def wrap_captions_in_start_stop(training_captions):
 
 
 def wrap_text_in_start_and_stop(train_bbox_categories_mapping, train_captions_mapping):
-    input_sentences = []
-    output_sentences_with_eos = []
-    output_sentences_inputs_with_sos = []
+    bbox_categories_list = []
+    output_sentences_with_eos_list = []
+    output_sentences_inputs_with_sos_list = []
     for image_id in train_captions_mapping.keys():
-        input_sentence = train_bbox_categories_mapping[image_id]
-        output = train_captions_mapping[image_id]
-        output_sentence_with_eos = output + ' <eos>'
-        output_sentence_input_with_sos = '<sos> ' + output
-        input_sentences.append(input_sentence)
-        output_sentences_with_eos.append(output_sentence_with_eos)
-        output_sentences_inputs_with_sos.append(output_sentence_input_with_sos)
-
-    print("Number of sample input:", len(input_sentences))
-    print("Number of sample output:", len(output_sentences_with_eos))
-    print("Number of sample output input:", len(output_sentences_inputs_with_sos))
-    return input_sentences, output_sentences_with_eos, output_sentences_inputs_with_sos
+        bbox_categories = train_bbox_categories_mapping[image_id]
+        bbox_categories = ' '.join(map(str, bbox_categories))
+        output_sentences = train_captions_mapping[image_id]
+        output_sentences = clear(output_sentences)
+        for sentence in output_sentences:
+            output_sentence_with_eos = sentence + ' <eos>'
+            output_sentence_input_with_sos = '<sos> ' + sentence
+            output_sentences_with_eos_list.append(output_sentence_with_eos)
+            output_sentences_inputs_with_sos_list.append(output_sentence_input_with_sos)
+            bbox_categories_list.append(bbox_categories)
+    print("Number of sample input:", len(bbox_categories_list))
+    print("Number of sample output:", len(output_sentences_with_eos_list))
+    print("Number of sample output input:", len(output_sentences_inputs_with_sos_list))
+    return bbox_categories_list, output_sentences_with_eos_list, output_sentences_inputs_with_sos_list
 
 
 def preprocess(image_path, preprocess_input_function, images_processor):
@@ -532,30 +561,29 @@ def preprocess_data(data):
     val_bbox_categories_mapping, \
     all_captions, all_bbox_categories = define_learning_data(data)
     # input_sentences, output_sentences_with_eos, output_sentences_inputs_with_sos
-    input_sentences, output_sentences_with_eos, output_sentences_with_sos = \
+    bbox_categories_list, output_sentences_with_eos, output_sentences_with_sos = \
         wrap_text_in_start_and_stop(train_bbox_categories_mapping, train_captions_mapping)
-
+    print(bbox_categories_list[0:10])
+    print(output_sentences_with_eos[0:10])
+    print(output_sentences_with_sos[0:10])
     # tokenize the input bounding box categories(input language)
-    input_tokenizer = define_tokenizer(input_sentences)
-    input_integer_seq, word2idx_inputs = tokenize_input(input_sentences, input_tokenizer)
+    input_tokenizer = define_tokenizer(bbox_categories_list)
+    input_integer_seq, word2idx_inputs = tokenize_input(bbox_categories_list, input_tokenizer)
     data.max_input_len = max(len(sen) for sen in input_integer_seq)
     print("Length of longest sentence in input: %g" % data.max_input_len)
-
-    output_integer_seq, output_input_integer_seq, word2idx_outputs = tokenize_output(output_sentences_with_eos,
-                                                                                     output_sentences_with_sos)
-
-    data.max_output_len = max(len(sen) for sen in output_integer_seq)
-    print("Length of longest sentence in the output: %g" % data.max_output_len)
-
+    print(word2idx_inputs["join"])
+    print(word2idx_inputs["us"])
     data.encoder_input_sequences = pad_sequences(input_integer_seq, maxlen=data.max_input_len)
-
-    test_bbox_categories_sequences = input_tokenizer.texts_to_sequences(test_bbox_categories_mapping)
-    data.encoder_test_sequences = pad_sequences(test_bbox_categories_sequences, maxlen=data.max_input_len)
     print("encoder_input_sequences.shape:", data.encoder_input_sequences.shape)
     print("encoder_input_sequences[180]:", data.encoder_input_sequences[180])
 
-    print(word2idx_inputs["join"])
-    print(word2idx_inputs["us"])
+    test_bbox_categories_sequences = input_tokenizer.texts_to_sequences(test_bbox_categories_mapping)
+    data.encoder_test_sequences = pad_sequences(test_bbox_categories_sequences, maxlen=data.max_input_len)
+
+    output_integer_seq, output_input_integer_seq, word2idx_outputs = tokenize_output(output_sentences_with_eos,
+                                                                                     output_sentences_with_sos)
+    data.max_output_len = max(len(sen) for sen in output_integer_seq)
+    print("Length of longest sentence in the output: %g" % data.max_output_len)
 
     data.decoder_input_sequences = pad_sequences(output_input_integer_seq, maxlen=data.max_output_len, padding='post')
     print("decoder_input_sequences.shape:", data.decoder_input_sequences.shape)
@@ -579,7 +607,7 @@ def preprocess_data(data):
                                                            glove[data.language]["word_embedings_path"],
                                                            glove[data.language]["embedings_dim"])
     num_words_output = len(word2idx_outputs) + 1
-    data.decoder_targets_one_hot = one_hot_decoder(input_sentences, data.max_output_len, num_words_output,
+    data.decoder_targets_one_hot = one_hot_decoder(bbox_categories_list, data.max_output_len, num_words_output,
                                                    data.decoder_output_sequences)
     return data
 
