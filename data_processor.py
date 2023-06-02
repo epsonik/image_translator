@@ -15,9 +15,10 @@ from tensorflow.keras.applications.mobilenet import MobileNet
 from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2
 from keras.applications.xception import Xception
 from keras.preprocessing import image
-from keras.models import Model
 import itertools
-
+from keras.models import Model
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 import os, codecs
 from tqdm import tqdm
 from config import fastText, glove
@@ -194,6 +195,25 @@ def wrap_captions_in_start_stop(training_captions):
     return train_captions_preprocessed
 
 
+def wrap_text_in_start_and_stop(train_bbox_categories_mapping, train_captions_mapping):
+    input_sentences = []
+    output_sentences_with_eos = []
+    output_sentences_inputs_with_sos = []
+    for image_id in train_captions_mapping.keys():
+        input_sentence = train_bbox_categories_mapping[image_id]
+        output = train_captions_mapping[image_id]
+        output_sentence_with_eos = output + ' <eos>'
+        output_sentence_input_with_sos = '<sos> ' + output
+        input_sentences.append(input_sentence)
+        output_sentences_with_eos.append(output_sentence_with_eos)
+        output_sentences_inputs_with_sos.append(output_sentence_input_with_sos)
+
+    print("Number of sample input:", len(input_sentences))
+    print("Number of sample output:", len(output_sentences_with_eos))
+    print("Number of sample output input:", len(output_sentences_inputs_with_sos))
+    return input_sentences, output_sentences_with_eos, output_sentences_inputs_with_sos
+
+
 def preprocess(image_path, preprocess_input_function, images_processor):
     """
     Method to preprocess images by:
@@ -303,7 +323,7 @@ def preprocess_images(train_images, test_images, configuration):
     return encoding_train, encoding_test
 
 
-def get_all_train_captions_list(train_captions):
+def get_all_train_text_list(train_captions):
     """
     Method to create a 1D list of all the flattened training captions
     Parameters
@@ -440,7 +460,7 @@ def define_learning_data(data):
     return train_images_mapping, train_captions_mapping, train_bbox_categories_mapping, \
            test_images_mapping, test_captions_mapping, test_bbox_categories_mapping, \
            val_images_mapping, val_captions_mapping, val_bbox_categories_mapping, \
-           data.train["all_captions"]
+           data.train["all_captions"], data.train["all_bbox_categories"]
 
 
 def create_dir_structure(configuration):
@@ -468,46 +488,99 @@ def create_dir_structure(configuration):
         os.makedirs(general["results_directory"])
 
 
+def define_tokenizer(sentences):
+    input_tokenizer = Tokenizer()
+    input_tokenizer.fit_on_texts(sentences)
+    return input_tokenizer
+
+
+def tokenize_input(sentences, input_tokenizer):
+    integer_seq = input_tokenizer.texts_to_sequences(sentences)
+    word2idx = input_tokenizer.word_index
+    print('Total unique words in the input: %s' % len(word2idx))
+    return integer_seq, word2idx
+
+
+def tokenize_output(output_sentences, output_sentences_inputs):
+    output_tokenizer = Tokenizer()
+    output_tokenizer.fit_on_texts(output_sentences + output_sentences_inputs)
+    output_integer_seq = output_tokenizer.texts_to_sequences(output_sentences)
+    output_input_integer_seq = output_tokenizer.texts_to_sequences(output_sentences_inputs)
+    word2idx_outputs = output_tokenizer.word_index
+    print('Total unique words in the output: %s' % len(word2idx_outputs))
+    return output_integer_seq, output_input_integer_seq, word2idx_outputs
+
+
+def one_hot_decoder(input_sentences, max_out_len, num_words_output, decoder_output_sequences):
+    decoder_targets_one_hot = np.zeros((len(input_sentences), max_out_len, num_words_output), dtype='float32')
+    for i, d in enumerate(decoder_output_sequences):
+        for t, word in enumerate(d):
+            decoder_targets_one_hot[i, t, word] = 1
+    return decoder_targets_one_hot
+
+
 def preprocess_data(data):
     create_dir_structure(data.configuration)
     train_images_mapping, \
     train_captions_mapping, \
+    train_bbox_categories_mapping, \
     test_images_mapping, \
     test_captions_mapping, \
+    test_bbox_categories_mapping, \
     val_images_mapping, \
     val_captions_mapping, \
-    all_captions = define_learning_data(data)
-    print("Final splits")
-    print("Number of train images: ", len(train_images_mapping))
-    print("Number of test images: ", len(test_images_mapping))
-    print("Number of train captions: ", len(train_captions_mapping))
-    print("Number of test captions: ", len(test_captions_mapping))
-    clean_descriptions(train_captions_mapping, data.language)
-    print("Descriptions cleaned.")
-    print(train_captions_mapping[list(train_images_mapping.keys())[0]])
-    data.train_captions_wrapped = wrap_captions_in_start_stop(train_captions_mapping)
-    print("Descriptions wraped into start and stop words.")
-    print(data.train_captions_wrapped[list(data.train_captions_wrapped.keys())[0]])
-    all_train_captions = get_all_train_captions_list(data.train_captions_wrapped)
-    print("Number of training captions ", len(all_train_captions))
-    data.max_length = get_max_length(all_train_captions)
-    print('Description Length: %d' % data.max_length)
-    # Count words and consider only words which occur at least 10 times in the corpus
-    data.vocab = count_words_and_threshold(all_train_captions)
-    data.ixtoword, data.wordtoix = ixtowordandbackward(data.vocab, data.configuration)
-    data.vocab_size = len(data.ixtoword) + 1  # one for appended 0's
-    print("Vocab size: ", data.vocab_size)
+    val_bbox_categories_mapping, \
+    all_captions, all_bbox_categories = define_learning_data(data)
+    # input_sentences, output_sentences_with_eos, output_sentences_inputs_with_sos
+    input_sentences, output_sentences_with_eos, output_sentences_with_sos = \
+        wrap_text_in_start_and_stop(train_bbox_categories_mapping, train_captions_mapping)
+
+    # tokenize the input bounding box categories(input language)
+    input_tokenizer = define_tokenizer(input_sentences)
+    input_integer_seq, word2idx_inputs = tokenize_input(input_sentences, input_tokenizer)
+    data.max_input_len = max(len(sen) for sen in input_integer_seq)
+    print("Length of longest sentence in input: %g" % data.max_input_len)
+
+    output_integer_seq, output_input_integer_seq, word2idx_outputs = tokenize_output(output_sentences_with_eos,
+                                                                                     output_sentences_with_sos)
+
+    data.max_output_len = max(len(sen) for sen in output_integer_seq)
+    print("Length of longest sentence in the output: %g" % data.max_output_len)
+
+    data.encoder_input_sequences = pad_sequences(input_integer_seq, maxlen=data.max_input_len)
+
+    test_bbox_categories_sequences = input_tokenizer.texts_to_sequences(test_bbox_categories_mapping)
+    data.encoder_test_sequences = pad_sequences(test_bbox_categories_sequences, maxlen=data.max_input_len)
+    print("encoder_input_sequences.shape:", data.encoder_input_sequences.shape)
+    print("encoder_input_sequences[180]:", data.encoder_input_sequences[180])
+
+    print(word2idx_inputs["join"])
+    print(word2idx_inputs["us"])
+
+    data.decoder_input_sequences = pad_sequences(output_input_integer_seq, maxlen=data.max_output_len, padding='post')
+    print("decoder_input_sequences.shape:", data.decoder_input_sequences.shape)
+    print("decoder_input_sequences[180]:", data.decoder_input_sequences[180])
+    print(word2idx_outputs["<sos>"])
+    print(word2idx_outputs["joignez-vous"])
+    print(word2idx_outputs["à"])
+    print(word2idx_outputs["nous."])
+
+    data.decoder_output_sequences = pad_sequences(output_integer_seq, maxlen=data.max_output_len, padding='post')
+    print("decoder_output_sequences.shape:", data.decoder_output_sequences.shape)
     if data.configuration["text_processor"] == "fastText":
         print("Fasttext used")
-        data.embedding_matrix = get_fast_text_embedding_matrix(data.vocab_size, data.wordtoix,
-                                                               fastText[data.language]["word_embedings_path"],
-                                                               fastText[data.language]["embedings_dim"])
+        data.embedding_matrix_input = get_fast_text_embedding_matrix(data.vocab_size, data.wordtoix,
+                                                                     fastText[data.language]["word_embedings_path"],
+                                                                     fastText[data.language]["embedings_dim"])
     else:
         print("Glove used")
-        data.embedding_matrix = get_embedding_matrix(data.vocab_size, data.wordtoix,
-                                                     glove[data.language]["word_embedings_path"],
-                                                     glove[data.language]["embedings_dim"])
-
+        num_words_inputs = len(word2idx_inputs) + 1
+        data.embedding_matrix_input = get_embedding_matrix(num_words_inputs, word2idx_inputs,
+                                                           glove[data.language]["word_embedings_path"],
+                                                           glove[data.language]["embedings_dim"])
+    num_words_output = len(word2idx_outputs) + 1
+    data.decoder_targets_one_hot = one_hot_decoder(input_sentences, data.max_output_len, num_words_output,
+                                                   data.decoder_output_sequences)
     return data
 
 

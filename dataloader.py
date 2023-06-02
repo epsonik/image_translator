@@ -408,6 +408,7 @@ def load_dataset(configuration):
                 "val_categories_mapping_original": val_bbox_categories_mapping_original
             },
             "all_captions": all_captions,
+            "all_bbox_categories": all_bbox_categories,
             "language": dataset_configuration['language']
         }
 
