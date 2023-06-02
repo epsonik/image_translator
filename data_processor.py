@@ -571,8 +571,6 @@ def preprocess_data(data):
     input_integer_seq, word2idx_inputs = tokenize_input(bbox_categories_list, input_tokenizer)
     data.max_input_len = max(len(sen) for sen in input_integer_seq)
     print("Length of longest sentence in input: %g" % data.max_input_len)
-    print(word2idx_inputs["join"])
-    print(word2idx_inputs["us"])
     data.encoder_input_sequences = pad_sequences(input_integer_seq, maxlen=data.max_input_len)
     print("encoder_input_sequences.shape:", data.encoder_input_sequences.shape)
     print("encoder_input_sequences[180]:", data.encoder_input_sequences[180])
@@ -586,26 +584,20 @@ def preprocess_data(data):
     print("Length of longest sentence in the output: %g" % data.max_output_len)
 
     data.decoder_input_sequences = pad_sequences(output_input_integer_seq, maxlen=data.max_output_len, padding='post')
-    print("decoder_input_sequences.shape:", data.decoder_input_sequences.shape)
-    print("decoder_input_sequences[180]:", data.decoder_input_sequences[180])
-    print(word2idx_outputs["<sos>"])
-    print(word2idx_outputs["joignez-vous"])
-    print(word2idx_outputs["à"])
-    print(word2idx_outputs["nous."])
 
     data.decoder_output_sequences = pad_sequences(output_integer_seq, maxlen=data.max_output_len, padding='post')
     print("decoder_output_sequences.shape:", data.decoder_output_sequences.shape)
     if data.configuration["text_processor"] == "fastText":
         print("Fasttext used")
         data.embedding_matrix_input = get_fast_text_embedding_matrix(data.vocab_size, data.wordtoix,
-                                                                     fastText[data.language]["word_embedings_path"],
-                                                                     fastText[data.language]["embedings_dim"])
+                                                                     fastText["word_embedings_path"],
+                                                                     fastText["embedings_dim"])
     else:
         print("Glove used")
         num_words_inputs = len(word2idx_inputs) + 1
         data.embedding_matrix_input = get_embedding_matrix(num_words_inputs, word2idx_inputs,
-                                                           glove[data.language]["word_embedings_path"],
-                                                           glove[data.language]["embedings_dim"])
+                                                           glove["word_embedings_path"],
+                                                           glove["embedings_dim"])
     num_words_output = len(word2idx_outputs) + 1
     data.decoder_targets_one_hot = one_hot_decoder(bbox_categories_list, data.max_output_len, num_words_output,
                                                    data.decoder_output_sequences)

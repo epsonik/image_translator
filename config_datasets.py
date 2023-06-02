@@ -9,16 +9,13 @@ general = {
     "word_count_threshold": 10
 }
 glove = {
-    "eng": {
-        "word_embedings_path": data_path + "images/glove/glove.6B.200d.txt",
-        "embedings_dim": 199
-    }
+    "word_embedings_path": data_path + "images/glove/glove.6B.200d.txt",
+    "embedings_dim": 199
 }
 fastText = {
-    "eng": {
-        "word_embedings_path": data_path + "text_models/fastText/wiki-news-300d-1M-subword.vec",
-        "embedings_dim": 300
-    }
+    "word_embedings_path": data_path + "text_models/fastText/wiki-news-300d-1M-subword.vec",
+    "embedings_dim": 300
+
 }
 config_flickr8k = {
     "images_dir": data_path + "images/flickr8k/Images/",
