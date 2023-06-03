@@ -193,7 +193,7 @@ def clear(desc_list):
         sentence = [word for word in sentence if word.isalpha()]
         # store as string
         clean_pair.append(' '.join(sentence))
-    return desc_list
+    return clean_pair
 
 
 def wrap_captions_in_start_stop(training_captions):
@@ -237,9 +237,9 @@ def wrap_text_in_start_and_stop(train_bbox_categories_mapping, train_captions_ma
             output_sentences_with_eos_list.append(output_sentence_with_eos)
             output_sentences_inputs_with_sos_list.append(output_sentence_input_with_sos)
             bbox_categories_list.append(bbox_categories)
-    print("Number of sample input:", len(bbox_categories_list))
-    print("Number of sample output:", len(output_sentences_with_eos_list))
-    print("Number of sample output input:", len(output_sentences_inputs_with_sos_list))
+    print("Number of bbox sentences:", len(bbox_categories_list))
+    print("Number of sentences:", len(output_sentences_with_eos_list))
+    print("Number of sentences:", len(output_sentences_inputs_with_sos_list))
     return bbox_categories_list, output_sentences_with_eos_list, output_sentences_inputs_with_sos_list
 
 
