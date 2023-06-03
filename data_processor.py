@@ -21,7 +21,7 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import os, codecs
 from tqdm import tqdm
-from config import fastText, glove
+from config_translator import fastText, glove
 import string
 import re
 from unicodedata import normalize
