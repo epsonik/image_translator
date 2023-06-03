@@ -594,8 +594,8 @@ def preprocess_data(data):
                                                                      fastText["embedings_dim"])
     else:
         print("Glove used")
-        num_words_inputs = len(word2idx_inputs) + 1
-        data.embedding_matrix_input = get_embedding_matrix(num_words_inputs, word2idx_inputs,
+        data.num_words_inputs = len(word2idx_inputs) + 1
+        data.embedding_matrix_input = get_embedding_matrix(data.num_words_inputs, word2idx_inputs,
                                                            glove["word_embedings_path"],
                                                            glove["embedings_dim"])
     num_words_output = len(word2idx_outputs) + 1
