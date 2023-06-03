@@ -598,8 +598,8 @@ def preprocess_data(data):
         data.embedding_matrix_input = get_embedding_matrix(data.num_words_inputs, word2idx_inputs,
                                                            glove["word_embedings_path"],
                                                            glove["embedings_dim"])
-    num_words_output = len(word2idx_outputs) + 1
-    data.decoder_targets_one_hot = one_hot_decoder(bbox_categories_list, data.max_output_len, num_words_output,
+    data.num_words_output = len(word2idx_outputs) + 1
+    data.decoder_targets_one_hot = one_hot_decoder(bbox_categories_list, data.max_output_len, data.num_words_output,
                                                    data.decoder_output_sequences)
     return data
 
