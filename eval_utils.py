@@ -164,7 +164,7 @@ def prepare_for_evaluation(encoder_test_sequences, test_captions_mapping, encode
         et = time.time()
         # get the execution time
         elapsed_time = et - st
-        # print('Execution time:', elapsed_time*1000, 'miliseconds')
+        print('Execution time:', elapsed_time*1000, 'miliseconds')
 
         # get the execution time
         # Put predicted captions to the structure accepted by evaluation framework.

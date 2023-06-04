@@ -541,7 +541,7 @@ def tokenize_output(output_sentences, output_sentences_inputs):
 
 
 def one_hot_decoder(input_sentences, max_out_len, num_words_output, decoder_output_sequences):
-    decoder_targets_one_hot = np.zeros((len(input_sentences), max_out_len, num_words_output), dtype='float32')
+    decoder_targets_one_hot = np.zeros((len(input_sentences), max_out_len, num_words_output), dtype='uint8')
     for i, d in enumerate(decoder_output_sequences):
         for t, word in enumerate(d):
             decoder_targets_one_hot[i, t, word] = 1
