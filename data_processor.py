@@ -531,7 +531,7 @@ def tokenize_input(sentences, input_tokenizer):
 
 
 def tokenize_output(output_sentences, output_sentences_inputs):
-    output_tokenizer = Tokenizer()
+    output_tokenizer = Tokenizer(filters='')
     output_tokenizer.fit_on_texts(output_sentences + output_sentences_inputs)
     output_integer_seq = output_tokenizer.texts_to_sequences(output_sentences)
     output_input_integer_seq = output_tokenizer.texts_to_sequences(output_sentences_inputs)
@@ -579,7 +579,7 @@ def preprocess_data(data):
     data.encoder_test_sequences = pad_sequences(test_bbox_categories_sequences, maxlen=data.max_input_len)
 
     output_integer_seq, output_input_integer_seq, data.word2idx_outputs = tokenize_output(output_sentences_with_eos,
-                                                                                     output_sentences_with_sos)
+                                                                                          output_sentences_with_sos)
     data.max_output_len = max(len(sen) for sen in output_integer_seq)
     print("Length of longest sentence in the output: %g" % data.max_output_len)
 
