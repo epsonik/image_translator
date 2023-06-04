@@ -554,7 +554,7 @@ def preprocess_data(data):
     train_captions_mapping, \
     train_bbox_categories_mapping, \
     test_images_mapping, \
-    test_captions_mapping, \
+    data.test_captions_mapping, \
     test_bbox_categories_mapping, \
     val_images_mapping, \
     val_captions_mapping, \
