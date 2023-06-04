@@ -575,10 +575,10 @@ def preprocess_data(data):
     print("encoder_input_sequences.shape:", data.encoder_input_sequences.shape)
     print("encoder_input_sequences[180]:", data.encoder_input_sequences[180])
 
-    test_bbox_categories_sequences = input_tokenizer.texts_to_sequences(test_bbox_categories_mapping)
+    test_bbox_categories_sequences = input_tokenizer.texts_to_sequences(list(test_bbox_categories_mapping.values()))
     data.encoder_test_sequences = pad_sequences(test_bbox_categories_sequences, maxlen=data.max_input_len)
 
-    output_integer_seq, output_input_integer_seq, word2idx_outputs = tokenize_output(output_sentences_with_eos,
+    output_integer_seq, output_input_integer_seq, data.word2idx_outputs = tokenize_output(output_sentences_with_eos,
                                                                                      output_sentences_with_sos)
     data.max_output_len = max(len(sen) for sen in output_integer_seq)
     print("Length of longest sentence in the output: %g" % data.max_output_len)
@@ -598,7 +598,7 @@ def preprocess_data(data):
         data.embedding_matrix_input = get_embedding_matrix(data.num_words_inputs, word2idx_inputs,
                                                            glove["word_embedings_path"],
                                                            glove["embedings_dim"])
-    data.num_words_output = len(word2idx_outputs) + 1
+    data.num_words_output = len(data.word2idx_outputs) + 1
     data.decoder_targets_one_hot = one_hot_decoder(bbox_categories_list, data.max_output_len, data.num_words_output,
                                                    data.decoder_output_sequences)
     return data
