@@ -83,6 +83,7 @@ def get_embedding_matrix(vocab_size, wordtoix, word_embedings_path, embedings_di
             # Words not found in the embedding index will be all zeros
             # 1655,299 199
             embedding_matrix[i] = embedding_vector
+    print("Shape of embedding matrix")
     print(embedding_matrix.shape)
     return embedding_matrix
 
@@ -224,23 +225,19 @@ def wrap_captions_in_start_stop(training_captions):
 
 def wrap_text_in_start_and_stop(train_bbox_categories_mapping, train_captions_mapping):
     bbox_categories_list = []
-    output_sentences_with_eos_list = []
-    output_sentences_inputs_with_sos_list = []
+    output_sentences = []
     for image_id in train_captions_mapping.keys():
         bbox_categories = train_bbox_categories_mapping[image_id]
         bbox_categories = ' '.join(map(str, bbox_categories))
         output_sentences = train_captions_mapping[image_id]
         output_sentences = clear(output_sentences)
         for sentence in output_sentences:
-            output_sentence_with_eos = sentence + ' <eos>'
-            output_sentence_input_with_sos = '<sos> ' + sentence
-            output_sentences_with_eos_list.append(output_sentence_with_eos)
-            output_sentences_inputs_with_sos_list.append(output_sentence_input_with_sos)
+            output_sentence = general['START'] + " " + " ".join(sentence) + " " + general['STOP']
+            output_sentences.append(output_sentence)
             bbox_categories_list.append(bbox_categories)
     print("Number of bbox sentences:", len(bbox_categories_list))
-    print("Number of sentences:", len(output_sentences_with_eos_list))
-    print("Number of sentences:", len(output_sentences_inputs_with_sos_list))
-    return bbox_categories_list, output_sentences_with_eos_list, output_sentences_inputs_with_sos_list
+    print("Number of sentences:", len(output_sentences))
+    return bbox_categories_list, output_sentences
 
 
 def preprocess(image_path, preprocess_input_function, images_processor):
@@ -518,34 +515,9 @@ def create_dir_structure(configuration):
 
 
 def define_tokenizer(sentences):
-    input_tokenizer = Tokenizer()
+    input_tokenizer = Tokenizer(filters='')
     input_tokenizer.fit_on_texts(sentences)
     return input_tokenizer
-
-
-def tokenize_input(sentences, input_tokenizer):
-    integer_seq = input_tokenizer.texts_to_sequences(sentences)
-    word2idx = input_tokenizer.word_index
-    print('Total unique words in the input: %s' % len(word2idx))
-    return integer_seq, word2idx
-
-
-def tokenize_output(output_sentences, output_sentences_inputs):
-    output_tokenizer = Tokenizer(filters='')
-    output_tokenizer.fit_on_texts(output_sentences + output_sentences_inputs)
-    output_integer_seq = output_tokenizer.texts_to_sequences(output_sentences)
-    output_input_integer_seq = output_tokenizer.texts_to_sequences(output_sentences_inputs)
-    word2idx_outputs = output_tokenizer.word_index
-    print('Total unique words in the output: %s' % len(word2idx_outputs))
-    return output_integer_seq, output_input_integer_seq, word2idx_outputs
-
-
-def one_hot_decoder(input_sentences, max_out_len, num_words_output, decoder_output_sequences):
-    decoder_targets_one_hot = np.zeros((len(input_sentences), max_out_len, num_words_output), dtype='uint8')
-    for i, d in enumerate(decoder_output_sequences):
-        for t, word in enumerate(d):
-            decoder_targets_one_hot[i, t, word] = 1
-    return decoder_targets_one_hot
 
 
 def preprocess_data(data):
@@ -560,48 +532,40 @@ def preprocess_data(data):
     val_captions_mapping, \
     val_bbox_categories_mapping, \
     all_captions, all_bbox_categories = define_learning_data(data)
-    # input_sentences, output_sentences_with_eos, output_sentences_inputs_with_sos
-    bbox_categories_list, output_sentences_with_eos, output_sentences_with_sos = \
-        wrap_text_in_start_and_stop(train_bbox_categories_mapping, train_captions_mapping)
-    print(bbox_categories_list[0:10])
-    print(output_sentences_with_eos[0:10])
-    print(output_sentences_with_sos[0:10])
+    train_bbox_categories_list, train_output_sentences_list = wrap_text_in_start_and_stop(train_bbox_categories_mapping,
+                                                                              train_captions_mapping)
+    print(train_bbox_categories_list[0:10])
+    print(train_bbox_categories_list[0:10])
     # tokenize the input bounding box categories(input language)
-    input_tokenizer = define_tokenizer(bbox_categories_list)
-    input_integer_seq, word2idx_inputs = tokenize_input(bbox_categories_list, input_tokenizer)
-    data.max_input_len = max(len(sen) for sen in input_integer_seq)
-    print("Length of longest sentence in input: %g" % data.max_input_len)
-    data.encoder_input_sequences = pad_sequences(input_integer_seq, maxlen=data.max_input_len)
-    print("encoder_input_sequences.shape:", data.encoder_input_sequences.shape)
-    print("encoder_input_sequences[180]:", data.encoder_input_sequences[180])
+    input_tokenizer = define_tokenizer(train_bbox_categories_list)
+    data.input_vocab_size = len(input_tokenizer.word_index) + 1
+    data.max_input_length = get_max_length(get_all_train_captions_list(train_bbox_categories_list))
 
-    test_bbox_categories_sequences = input_tokenizer.texts_to_sequences(list(test_bbox_categories_mapping.values()))
-    data.encoder_test_sequences = pad_sequences(test_bbox_categories_sequences, maxlen=data.max_input_len)
-
-    output_integer_seq, output_input_integer_seq, data.word2idx_outputs = tokenize_output(output_sentences_with_eos,
-                                                                                          output_sentences_with_sos)
-    data.max_output_len = max(len(sen) for sen in output_integer_seq)
-    print("Length of longest sentence in the output: %g" % data.max_output_len)
-
-    data.decoder_input_sequences = pad_sequences(output_input_integer_seq, maxlen=data.max_output_len, padding='post')
-
-    data.decoder_output_sequences = pad_sequences(output_integer_seq, maxlen=data.max_output_len, padding='post')
-    print("decoder_output_sequences.shape:", data.decoder_output_sequences.shape)
-    if data.configuration["text_processor"] == "fastText":
-        print("Fasttext used")
-        data.embedding_matrix_input = get_fast_text_embedding_matrix(data.vocab_size, data.wordtoix,
-                                                                     fastText["word_embedings_path"],
-                                                                     fastText["embedings_dim"])
-    else:
-        print("Glove used")
-        data.num_words_inputs = len(word2idx_inputs) + 1
-        data.embedding_matrix_input = get_embedding_matrix(data.num_words_inputs, word2idx_inputs,
-                                                           glove["word_embedings_path"],
-                                                           glove["embedings_dim"])
-    data.num_words_output = len(data.word2idx_outputs) + 1
-    data.decoder_targets_one_hot = one_hot_decoder(bbox_categories_list, data.max_output_len, data.num_words_output,
-                                                   data.decoder_output_sequences)
+    print("Length of longest sentence in the input: %g" % data.max_input_length)
+    output_tokenizer = define_tokenizer(train_output_sentences_list)
+    data.output_vocab_size = len(output_tokenizer.word_index) + 1
+    data.max_output_length = get_max_length(get_all_train_captions_list(train_output_sentences_list))
+    print("Length of longest sentence in the output: %g" % data.max_output_length)
+    print("Glove used")
+    data.embedding_matrix_input = get_embedding_matrix(data.num_words_inputs, input_tokenizer,
+                                                       glove["word_embedings_path"],
+                                                       glove["embedings_dim"])
     return data
+
+
+def get_all_train_captions_list(train_captions):
+    """
+    Method to create a 1D list of all the flattened training captions
+    Parameters
+    ----------
+    train_captions : dict
+        Dictionary with keys - image_id and values-list of ground truth captions from training set.
+
+    Returns
+    -------
+    Flattened list of captions
+    """
+    return list(itertools.chain(*train_captions.values()))
 
 
 def get_fast_text_embedding_matrix(vocab_size, wordtoix, word_embedings_path, embedings_dim):
