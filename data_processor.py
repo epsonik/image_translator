@@ -533,6 +533,8 @@ def preprocess_data(data):
     val_captions_mapping, \
     val_bbox_categories_mapping, \
     all_captions, all_bbox_categories = define_learning_data(data)
+    print(list(data.train_bbox_categories_mapping.values())[0:10])
+    print(list(data.train_captions_mapping.values())[0:10])
     data.train_bbox_categories_list, data.train_output_sentences_list = wrap_text_in_start_and_stop(train_bbox_categories_mapping,
                                                                                           train_captions_mapping)
     print(data.train_bbox_categories_list[0:10])
@@ -540,13 +542,13 @@ def preprocess_data(data):
     # tokenize the input bounding box categories(input language)
     data.input_tokenizer = define_tokenizer(data.train_bbox_categories_list)
     data.input_vocab_size = len(data.input_tokenizer.word_index) + 1
-    data.max_input_length = get_max_length(get_all_train_captions_list(train_bbox_categories_mapping))
-    print("Input vocab size: %g" % data.max_input_length)
+    data.max_input_length = get_max_length(data.train_bbox_categories_list)
+    print("Input vocab size: %g" % data.input_vocab_size)
     print("Length of longest sentence in the input: %g" % data.max_input_length)
     data.output_tokenizer = define_tokenizer(data.train_output_sentences_list)
     data.output_vocab_size = len(data.output_tokenizer.word_index) + 1
-    data.max_output_length = get_max_length(get_all_train_captions_list(train_captions_mapping))
-    print("Output vocab size: %g" % data.max_output_length)
+    data.max_output_length = get_max_length(data.train_output_sentences_list)
+    print("Output vocab size: %g" % data.output_vocab_size)
     print("Length of longest sentence in the output: %g" % data.max_output_length)
 
     print("Glove used")
