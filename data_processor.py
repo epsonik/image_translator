@@ -536,19 +536,21 @@ def preprocess_data(data):
     train_bbox_categories_list, train_output_sentences_list = wrap_text_in_start_and_stop(train_bbox_categories_mapping,
                                                                               train_captions_mapping)
     print(train_bbox_categories_list[0:10])
-    print(train_bbox_categories_list[0:10])
+    print(train_output_sentences_list[0:10])
     # tokenize the input bounding box categories(input language)
     input_tokenizer = define_tokenizer(train_bbox_categories_list)
     data.input_vocab_size = len(input_tokenizer.word_index) + 1
     data.max_input_length = get_max_length(get_all_train_captions_list(train_bbox_categories_mapping))
-
+    print("Input vocab size: %g" % data.max_input_length)
     print("Length of longest sentence in the input: %g" % data.max_input_length)
     output_tokenizer = define_tokenizer(train_output_sentences_list)
     data.output_vocab_size = len(output_tokenizer.word_index) + 1
     data.max_output_length = get_max_length(get_all_train_captions_list(train_captions_mapping))
+    print("Output vocab size: %g" % data.max_output_length)
     print("Length of longest sentence in the output: %g" % data.max_output_length)
+
     print("Glove used")
-    data.embedding_matrix_input = get_embedding_matrix(data.num_words_inputs, input_tokenizer,
+    data.embedding_matrix_input = get_embedding_matrix(data.input_vocab_size, input_tokenizer,
                                                        glove["word_embedings_path"],
                                                        glove["embedings_dim"])
     return data
