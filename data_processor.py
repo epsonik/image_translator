@@ -533,8 +533,8 @@ def preprocess_data(data):
     val_captions_mapping, \
     val_bbox_categories_mapping, \
     all_captions, all_bbox_categories = define_learning_data(data)
-    print(list(data.train_bbox_categories_mapping.values())[0:10])
-    print(list(data.train_captions_mapping.values())[0:10])
+    print(list(train_bbox_categories_mapping.values())[0:10])
+    print(list(train_captions_mapping.values())[0:10])
     data.train_bbox_categories_list, data.train_output_sentences_list = wrap_text_in_start_and_stop(train_bbox_categories_mapping,
                                                                                           train_captions_mapping)
     print(data.train_bbox_categories_list[0:10])
