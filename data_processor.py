@@ -550,7 +550,7 @@ def preprocess_data(data):
     print("Length of longest sentence in the output: %g" % data.max_output_length)
 
     print("Glove used")
-    data.embedding_matrix_input = get_embedding_matrix(data.input_vocab_size, input_tokenizer,
+    data.embedding_matrix_input = get_embedding_matrix(data.input_vocab_size, input_tokenizer.word_index,
                                                        glove["word_embedings_path"],
                                                        glove["embedings_dim"])
     return data
