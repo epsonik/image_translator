@@ -3,7 +3,6 @@ from __future__ import division
 from __future__ import print_function
 import json
 import os
-import pickle
 import sys
 import time
 

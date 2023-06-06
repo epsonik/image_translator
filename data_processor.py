@@ -529,8 +529,8 @@ def create_dir_structure(configuration):
         os.makedirs(general["results_directory"])
 
 
-def define_tokenizer(sentences):
-    input_tokenizer = Tokenizer(filters='')
+def define_tokenizer(sentences, filters=''):
+    input_tokenizer = Tokenizer(filters=filters)
     input_tokenizer.fit_on_texts(sentences)
     return input_tokenizer
 
@@ -555,7 +555,7 @@ def preprocess_data(data):
     print(data.train_bbox_categories_list[0:10])
     print(data.train_output_sentences_list[0:10])
     # tokenize the input bounding box categories(input language)
-    data.input_tokenizer = define_tokenizer(get_categories())
+    data.input_tokenizer = define_tokenizer(data.train_bbox_categories_list)
     data.input_vocab_size = len(data.input_tokenizer.word_index) + 1
     data.max_input_length = get_max_length(data.train_bbox_categories_list)
     print("Input vocab size: %g" % data.input_vocab_size)
