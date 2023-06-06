@@ -11,6 +11,7 @@ import numpy as np
 from keras.preprocessing.sequence import pad_sequences
 from config import general
 import csv
+from tensorflow.keras.utils import to_categorical
 
 
 def calculate_results(expected, results, config):
@@ -113,8 +114,7 @@ def greedySearch(photo, model, wordtoix, ixtoword, max_length):
     return final
 
 
-def prepare_for_evaluation(encoder_test_sequences, test_captions_mapping, encoder_model, decoder_model,
-                           word2idx_outputs, max_output_len):
+def prepare_for_evaluation(encoder_test_sequences, test_captions_mapping, data, model):
     """
     Method to put ground truth captions and results to the structure accepted by evaluation framework
 
@@ -150,7 +150,7 @@ def prepare_for_evaluation(encoder_test_sequences, test_captions_mapping, encode
     # calculation of metrics for test images dataset
     index = 0
     for j in range(0, len(encoder_test_sequences)):
-        input_seq = encoder_test_sequences[j:j+1]
+        input_seq = encoder_test_sequences[j:j + 1]
         image_id = test_pics[j]
         expected[image_id] = []
 
@@ -160,11 +160,11 @@ def prepare_for_evaluation(encoder_test_sequences, test_captions_mapping, encode
         # Predict captions
 
         st = time.time()
-        generated = translate_sentence(input_seq, encoder_model, decoder_model, word2idx_outputs, max_output_len)
+        generated = translate_sentence(input_seq, data.max_output_length, data.input_tokenizer, data.output_tokenizer, model)
         et = time.time()
         # get the execution time
         elapsed_time = et - st
-        print('Execution time:', elapsed_time*1000, 'miliseconds')
+        print('Execution time:', elapsed_time * 1000, 'miliseconds')
 
         # get the execution time
         # Put predicted captions to the structure accepted by evaluation framework.
@@ -177,31 +177,37 @@ def prepare_for_evaluation(encoder_test_sequences, test_captions_mapping, encode
     return expected, results
 
 
-def translate_sentence(input_seq, encoder_model, decoder_model, word2idx_outputs, max_output_len):
-    idx2word_target = {v: k for k, v in word2idx_outputs.items()}
-    states_value = encoder_model.predict(input_seq)
-    target_seq = np.zeros((1, 1))
-    target_seq[0, 0] = word2idx_outputs['<sos>']
-    eos = word2idx_outputs['<eos>']
-    output_sentence = []
+def encode_sequences(tokenizer, length, lines, padding_type='post'):
+    X = tokenizer.texts_to_sequences(lines)
+    X = pad_sequences(X, maxlen=length, padding=padding_type)
+    return X
 
-    for _ in range(max_output_len):
-        output_tokens, h, c = decoder_model.predict([target_seq] + states_value)
-        idx = np.argmax(output_tokens[0, 0, :])
 
-        if eos == idx:
+def encode_output(sequences, vocab_size):
+    ylist = list()
+    for seq in sequences:
+        encoded = to_categorical(seq, num_classes=vocab_size)
+        ylist.append(encoded)
+    y = np.array(ylist)
+    y = y.reshape((sequences.shape[0], sequences.shape[1], vocab_size))
+    return y
+
+
+def translate_sentence(input_sentence, max_output_length, input_tokenizer, output_tokenizer, model):
+    output_vocabulary_lookup = {v: k for k, v in output_tokenizer.word_index.items()}
+    tokenized_input_sentence = encode_sequences(input_tokenizer, max_output_length, input_sentence)
+    decoded_sentence = general["START"]
+    for i in range(max_output_length):
+        tokenized_target_sentence = encode_sequences(output_tokenizer, max_output_length, decoded_sentence)
+        predictions = model.predict([tokenized_input_sentence, tokenized_target_sentence])
+
+        sampled_token_index = np.argmax(predictions)
+        sampled_token = output_vocabulary_lookup[sampled_token_index]
+        decoded_sentence += " " + sampled_token
+
+        if sampled_token == general["STOP"]:
             break
-
-        word = ''
-
-        if idx > 0:
-            word = idx2word_target[idx]
-            output_sentence.append(word)
-
-        target_seq[0, 0] = idx
-        states_value = [h, c]
-
-    return ' '.join(output_sentence)
+    return decoded_sentence
 
 
 def generate_report(results_path):

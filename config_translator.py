@@ -4,8 +4,8 @@ general = {
     "results_directory": "./results",
     "coco-caption_path": "./coco-caption",
     "pl_spacy_model": data_path + 'images/pl_spacy_model',
-    "START": 'START',
-    "STOP": 'STOP',
+    "START": '<START>',
+    "STOP": '<STOP>',
     "word_count_threshold": 10
 }
 glove = {
