@@ -233,7 +233,7 @@ def wrap_text_in_start_and_stop(train_bbox_categories_mapping, train_captions_ma
         output_sentences = train_captions_mapping[image_id]
         output_sentences = clear(output_sentences)
         for sentence in output_sentences:
-            output_sentence = general['START'] + " " + " ".join(sentence) + " " + general['STOP']
+            output_sentence = general['START'] + " " + sentence + " " + general['STOP']
             output_sentences_list.append(output_sentence)
             bbox_categories_list.append(bbox_categories)
     print("Number of bbox sentences:", len(bbox_categories_list))
@@ -534,7 +534,7 @@ def preprocess_data(data):
     val_bbox_categories_mapping, \
     all_captions, all_bbox_categories = define_learning_data(data)
     train_bbox_categories_list, train_output_sentences_list = wrap_text_in_start_and_stop(train_bbox_categories_mapping,
-                                                                              train_captions_mapping)
+                                                                                          train_captions_mapping)
     print(train_bbox_categories_list[0:10])
     print(train_output_sentences_list[0:10])
     # tokenize the input bounding box categories(input language)
