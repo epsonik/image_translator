@@ -540,12 +540,12 @@ def preprocess_data(data):
     # tokenize the input bounding box categories(input language)
     input_tokenizer = define_tokenizer(train_bbox_categories_list)
     data.input_vocab_size = len(input_tokenizer.word_index) + 1
-    data.max_input_length = get_max_length(get_all_train_captions_list(train_bbox_categories_list))
+    data.max_input_length = get_max_length(get_all_train_captions_list(train_bbox_categories_mapping))
 
     print("Length of longest sentence in the input: %g" % data.max_input_length)
     output_tokenizer = define_tokenizer(train_output_sentences_list)
     data.output_vocab_size = len(output_tokenizer.word_index) + 1
-    data.max_output_length = get_max_length(get_all_train_captions_list(train_output_sentences_list))
+    data.max_output_length = get_max_length(get_all_train_captions_list(train_captions_mapping))
     print("Length of longest sentence in the output: %g" % data.max_output_length)
     print("Glove used")
     data.embedding_matrix_input = get_embedding_matrix(data.num_words_inputs, input_tokenizer,
