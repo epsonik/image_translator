@@ -225,19 +225,20 @@ def wrap_captions_in_start_stop(training_captions):
 
 def wrap_text_in_start_and_stop(train_bbox_categories_mapping, train_captions_mapping):
     bbox_categories_list = []
-    output_sentences = []
+    output_sentences_list = []
     for image_id in train_captions_mapping.keys():
         bbox_categories = train_bbox_categories_mapping[image_id]
         bbox_categories = ' '.join(map(str, bbox_categories))
+
         output_sentences = train_captions_mapping[image_id]
         output_sentences = clear(output_sentences)
         for sentence in output_sentences:
             output_sentence = general['START'] + " " + " ".join(sentence) + " " + general['STOP']
-            output_sentences.append(output_sentence)
+            output_sentences_list.append(output_sentence)
             bbox_categories_list.append(bbox_categories)
     print("Number of bbox sentences:", len(bbox_categories_list))
-    print("Number of sentences:", len(output_sentences))
-    return bbox_categories_list, output_sentences
+    print("Number of sentences:", len(output_sentences_list))
+    return bbox_categories_list, output_sentences_list
 
 
 def preprocess(image_path, preprocess_input_function, images_processor):
