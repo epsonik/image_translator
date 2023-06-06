@@ -35,6 +35,20 @@ def isfloat(value):
         return False
 
 
+def get_categories():
+    categories_list = ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat',
+                       'traffic light', 'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog',
+                       'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella',
+                       'handbag', 'tie', 'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball', 'kite',
+                       'baseball bat', 'baseball glove', 'skateboard', 'surfboard', 'tennis racket', 'bottle',
+                       'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple', 'sandwich', 'orange',
+                       'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch', 'potted plant',
+                       'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone',
+                       'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors',
+                       'teddy bear', 'hair drier', 'toothbrush', general["START"], general["STOP"]]
+    return categories_list
+
+
 def get_embedding_matrix(vocab_size, wordtoix, word_embedings_path, embedings_dim):
     """
     Method to represent words from created vocabulary(non repeatable words from all captions in dataset) in the
@@ -535,12 +549,13 @@ def preprocess_data(data):
     all_captions, all_bbox_categories = define_learning_data(data)
     print(list(train_bbox_categories_mapping.values())[0:10])
     print(list(train_captions_mapping.values())[0:10])
-    data.train_bbox_categories_list, data.train_output_sentences_list = wrap_text_in_start_and_stop(train_bbox_categories_mapping,
-                                                                                          train_captions_mapping)
+    data.train_bbox_categories_list, data.train_output_sentences_list = wrap_text_in_start_and_stop(
+        train_bbox_categories_mapping,
+        train_captions_mapping)
     print(data.train_bbox_categories_list[0:10])
     print(data.train_output_sentences_list[0:10])
     # tokenize the input bounding box categories(input language)
-    data.input_tokenizer = define_tokenizer(data.train_bbox_categories_list)
+    data.input_tokenizer = define_tokenizer(get_categories())
     data.input_vocab_size = len(data.input_tokenizer.word_index) + 1
     data.max_input_length = get_max_length(data.train_bbox_categories_list)
     print("Input vocab size: %g" % data.input_vocab_size)
