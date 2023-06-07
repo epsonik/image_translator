@@ -507,16 +507,20 @@ def define_learning_data(data):
            data.train["all_captions"], data.train["all_bbox_categories"]
 
 
-def load_data():
-    with open(general["train"], 'r') as f:
-        train_dataset = json.load(f)
-    with open(general["test"], 'r') as f:
-        test_dataset = json.load(f)
-    with open(general["val"], 'r') as f:
-        val_dataset = json.load(f)
-    with open(general["all"], 'r') as f:
-        all_dataset = json.load(f)
-    return train_dataset, test_dataset, val_dataset, all_dataset
+def load_data(data):
+
+    def get_split(split):
+        if data.configuration[split]['subset_name'] == 'train':
+            return data.train_dataset
+        if data.configuration[split]['subset_name'] == 'test':
+            return data.test_dataset
+        if data.configuration[split]['subset_name'] == 'val':
+            return data.val_dataset
+
+    train = get_split("train")
+    test = get_split("test")
+    val = get_split("val")
+    return train, test, val, data.all_dataset
 
 
 def create_dir_structure(configuration):
@@ -552,7 +556,7 @@ def define_tokenizer(sentences, filters=''):
 
 def preprocess_data(data):
     create_dir_structure(data.configuration)
-    train_dataset, test_dataset, val_datatset, all_dataset = load_data()
+    train_dataset, test_dataset, val_datatset, all_dataset = load_data(data)
     data.train_bbox_categories_list, data.train_output_sentences_list = wrap_text_in_start_and_stop(train_dataset)
 
     # tokenize the input bounding box categories(input language)

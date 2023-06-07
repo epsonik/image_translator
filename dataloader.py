@@ -2,6 +2,7 @@ import glob
 import json
 
 import config_datasets
+from config_translator import general
 
 
 def split_data(intersection, all_descriptions, train_images, test_images, val_images):
@@ -417,8 +418,20 @@ def load_dataset(configuration):
     return train, train, train
 
 
+def load_dataset():
+    with open(general["train"], 'r') as f:
+        train_dataset = json.load(f)
+    with open(general["test"], 'r') as f:
+        test_dataset = json.load(f)
+    with open(general["val"], 'r') as f:
+        val_dataset = json.load(f)
+    with open(general["all"], 'r') as f:
+        all_dataset = json.load(f)
+    return train_dataset, test_dataset, val_dataset, all_dataset
+
+
 class DataLoader:
     def __init__(self, configuration):
         print("Loading dataset")
-        self.train, self.test, self.val = load_dataset(configuration)
+        self.train, self.test, self.val, self.all = load_dataset()
         self.configuration = configuration
