@@ -395,7 +395,7 @@ def get_max_length(captions):
         Number of the words in longest captions
     """
     a = max((len(d.split()), i) for i, d in enumerate(captions))
-    return a[0], captions[a[1]]
+    return a[0], a[1]
 
 
 def count_words_and_threshold(all_train_captions):
@@ -566,16 +566,18 @@ def preprocess_data(data):
     # tokenize the input bounding box categories(input language)
     data.input_tokenizer = define_tokenizer(data.train_bbox_categories_list)
     data.input_vocab_size = len(data.input_tokenizer.word_index) + 1
-    data.max_input_length, max_input_value = get_max_length(data.train_bbox_categories_list)
+    data.max_input_length, max_input_index = get_max_length(data.train_bbox_categories_list)
     print("Input vocab size: %g" % data.input_vocab_size)
     print("Length of longest sentence in the input: %g" % data.max_input_length)
-    print("Value of longest sentence in the input: %g" % max_input_value)
+    print("Value of longest sentence in the input:")
+    print(data.train_bbox_categories_list[max_input_index])
     data.output_tokenizer = define_tokenizer(data.train_output_sentences_list)
     data.output_vocab_size = len(data.output_tokenizer.word_index) + 1
-    data.max_output_length, max_output_value = get_max_length(data.train_output_sentences_list)
+    data.max_output_length, max_output_index = get_max_length(data.train_output_sentences_list)
     print("Output vocab size: %g" % data.output_vocab_size)
     print("Length of longest sentence in the output: %g" % data.max_output_length)
-    print("Value of longest sentence in the output: %g" % max_output_value)
+    print("Value of longest sentence in the output:")
+    print(data.train_output_sentences_list[max_output_index])
 
     print("Glove used")
     data.embedding_matrix_input = get_embedding_matrix(data.input_vocab_size, data.input_tokenizer.word_index,
