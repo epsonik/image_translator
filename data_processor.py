@@ -523,7 +523,7 @@ def load_data(data):
     print("Number of annotation in {}: {}".format("train", len(train)))
     print("Number of annotation in {}: {}".format("test", len(test)))
     print("Number of annotation in {}: {}".format("val", len(val)))
-    return train, test, val, data.all_dataset
+    return train, test, val, data.all
 
 
 def create_dir_structure(configuration):
