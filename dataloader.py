@@ -427,6 +427,8 @@ def load_dataset():
         val_dataset = json.load(f)
     with open(general["all"], 'r') as f:
         all_dataset = json.load(f)
+    print("All images with coresponding categories loaded")
+    print("Number of images with categories and captions: ", len(all_dataset))
     return train_dataset, test_dataset, val_dataset, all_dataset
 
 
@@ -434,4 +436,5 @@ class DataLoader:
     def __init__(self, configuration):
         print("Loading dataset")
         self.train, self.test, self.val, self.all = load_dataset()
+        print("Dataset loaded")
         self.configuration = configuration

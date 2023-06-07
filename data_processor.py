@@ -511,15 +511,18 @@ def load_data(data):
 
     def get_split(split):
         if data.configuration[split]['subset_name'] == 'train':
-            return data.train_dataset
+            return data.train
         if data.configuration[split]['subset_name'] == 'test':
-            return data.test_dataset
+            return data.test
         if data.configuration[split]['subset_name'] == 'val':
-            return data.val_dataset
+            return data.val
 
     train = get_split("train")
     test = get_split("test")
     val = get_split("val")
+    print("Number of annotation in {}: {}".format("train", len(train)))
+    print("Number of annotation in {}: {}".format("test", len(test)))
+    print("Number of annotation in {}: {}".format("val", len(val)))
     return train, test, val, data.all_dataset
 
 
