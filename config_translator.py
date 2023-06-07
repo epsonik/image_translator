@@ -9,7 +9,8 @@ general = {
     "word_count_threshold": 10,
     "train":"./dataset/train.json",
     "test":"./dataset/test.json",
-    "val": "./dataset/val.json"
+    "val": "./dataset/val.json",
+    "all":  "./dataset/all.json"
 }
 glove = {
     "word_embedings_path": data_path + "images/glove/glove.6B.200d.txt",
