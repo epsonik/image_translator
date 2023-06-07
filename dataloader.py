@@ -380,7 +380,6 @@ def load_dataset(configuration):
         print("Number of train captions: ", len(train_captions_mapping_original))
         print("Number of test captions: ", len(test_captions_mapping_original))
         print("Number of val captions: ", len(val_captions_mapping_original))
-
         print("Loading bbox_categories of images splits")
         train_bbox_categories_mapping_original, test_bbox_categories_mapping_original, \
         val_bbox_categories_mapping_original = split_data(intersection_categories_captions, all_bbox_categories,

@@ -3,7 +3,6 @@ from time import time
 import numpy as np
 
 from config_translator import general
-import string
 from keras.applications.inception_v3 import InceptionV3
 from keras.applications.vgg16 import VGG16
 from keras.applications.vgg19 import VGG19
@@ -18,13 +17,13 @@ from keras.preprocessing import image
 import itertools
 from keras.models import Model
 from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.keras.preprocessing.sequence import pad_sequences
 import os, codecs
 from tqdm import tqdm
-from config_translator import fastText, glove
+from config_translator import glove
 import string
 import re
 from unicodedata import normalize
+import json
 
 
 def isfloat(value):
@@ -237,14 +236,14 @@ def wrap_captions_in_start_stop(training_captions):
     return train_captions_preprocessed
 
 
-def wrap_text_in_start_and_stop(train_bbox_categories_mapping, train_captions_mapping):
+def wrap_text_in_start_and_stop(train_dataset):
     bbox_categories_list = []
     output_sentences_list = []
-    for image_id in train_captions_mapping.keys():
-        bbox_categories = train_bbox_categories_mapping[image_id]
+    for pair in train_dataset:
+        bbox_categories = pair["bbox_categories"]
         bbox_categories = ' '.join(map(str, bbox_categories))
 
-        output_sentences = train_captions_mapping[image_id]
+        output_sentences = pair["captions"]
         output_sentences = clear(output_sentences)
         for sentence in output_sentences:
             output_sentence = general['START'] + " " + sentence + " " + general['STOP']
@@ -252,6 +251,10 @@ def wrap_text_in_start_and_stop(train_bbox_categories_mapping, train_captions_ma
             bbox_categories_list.append(bbox_categories)
     print("Number of bbox sentences:", len(bbox_categories_list))
     print("Number of sentences:", len(output_sentences_list))
+    print("Sample Bboxes")
+    print(bbox_categories_list[0:10])
+    print("Sample sentences")
+    print(output_sentences_list[0:10])
     return bbox_categories_list, output_sentences_list
 
 
@@ -504,6 +507,18 @@ def define_learning_data(data):
            data.train["all_captions"], data.train["all_bbox_categories"]
 
 
+def load_data():
+    with open(general["train"], 'r') as f:
+        train_dataset = json.load(f)
+    with open(general["test"], 'r') as f:
+        test_dataset = json.load(f)
+    with open(general["val"], 'r') as f:
+        val_dataset = json.load(f)
+    with open(general["all"], 'r') as f:
+        all_dataset = json.load(f)
+    return train_dataset, test_dataset, val_dataset, all_dataset
+
+
 def create_dir_structure(configuration):
     """
     Create directiories to store results of specific steps from processing data during learning process:
@@ -537,23 +552,9 @@ def define_tokenizer(sentences, filters=''):
 
 def preprocess_data(data):
     create_dir_structure(data.configuration)
-    train_images_mapping, \
-    train_captions_mapping, \
-    train_bbox_categories_mapping, \
-    test_images_mapping, \
-    data.test_captions_mapping, \
-    test_bbox_categories_mapping, \
-    val_images_mapping, \
-    val_captions_mapping, \
-    val_bbox_categories_mapping, \
-    all_captions, all_bbox_categories = define_learning_data(data)
-    print(list(train_bbox_categories_mapping.values())[0:10])
-    print(list(train_captions_mapping.values())[0:10])
-    data.train_bbox_categories_list, data.train_output_sentences_list = wrap_text_in_start_and_stop(
-        train_bbox_categories_mapping,
-        train_captions_mapping)
-    print(data.train_bbox_categories_list[0:10])
-    print(data.train_output_sentences_list[0:10])
+    train_dataset, test_dataset, val_datatset, all_dataset = load_data()
+    data.train_bbox_categories_list, data.train_output_sentences_list = wrap_text_in_start_and_stop(train_dataset)
+
     # tokenize the input bounding box categories(input language)
     data.input_tokenizer = define_tokenizer(data.train_bbox_categories_list)
     data.input_vocab_size = len(data.input_tokenizer.word_index) + 1

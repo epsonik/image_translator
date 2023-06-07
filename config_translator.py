@@ -6,7 +6,10 @@ general = {
     "pl_spacy_model": data_path + 'images/pl_spacy_model',
     "START": '<START>',
     "STOP": '<STOP>',
-    "word_count_threshold": 10
+    "word_count_threshold": 10,
+    "train":"./dataset/train.json",
+    "test":"./dataset/test.json",
+    "val": "./dataset/val.json"
 }
 glove = {
     "word_embedings_path": data_path + "images/glove/glove.6B.200d.txt",
@@ -22,12 +25,12 @@ fastText = {
 
 
 config_mixed_coco14_coco14_glove = {
-    "train": {"dataset_name": "coco14", "subset_name": "test"},
+    "train": {"dataset_name": "coco14", "subset_name": "train"},
     "test": {"dataset_name": "coco14", "subset_name": "test"},
     "val": {"dataset_name": "coco14", "subset_name": "val"},
     "save_ix_to_word": False,
-    "train_model": True,
-    "save_model": True,
+    "train_model": False,
+    "save_model": False,
     "ixtoword_path": "ixtoword.pkl",
     "wordtoix_path": "wordtoix.pkl",
     "pickles_dir": "/Pickle",
