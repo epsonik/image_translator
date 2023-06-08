@@ -571,8 +571,7 @@ def preprocess_data(data):
     print("Length of longest sentence in the input: %g" % data.max_input_length)
     print("Value of longest sentence in the input:")
     print(data.train_bbox_categories_list[max_input_index])
-    print("Value of longest sentence in the input:")
-    print(max_input_index)
+    print(get_max_length([x["bbox_categories"] for x in data.train]))
     data.output_tokenizer = define_tokenizer(data.train_output_sentences_list)
     data.output_vocab_size = len(data.output_tokenizer.word_index) + 1
     data.max_output_length, max_output_index = get_max_length(data.train_output_sentences_list)
