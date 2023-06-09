@@ -509,7 +509,6 @@ def define_learning_data(data):
 
 
 def load_data(data):
-
     def get_split(split):
         if data.configuration[split]['subset_name'] == 'train':
             return data.train
@@ -553,9 +552,35 @@ def create_dir_structure(configuration):
 
 
 def define_tokenizer(sentences, filters=''):
-    input_tokenizer = Tokenizer(filters=filters)
-    input_tokenizer.fit_on_texts(sentences)
-    return input_tokenizer
+    tokenizer = Tokenizer(filters=filters)
+    tokenizer.fit_on_texts(sentences)
+    return tokenizer
+
+
+def define_input_tokenizer(sentences, configuration):
+    word_indexing_path = "./" + configuration["data_name"] + configuration["pickles_dir"]
+    if configuration["save_tokenizer"]:
+        tokenizer = define_tokenizer(sentences)
+        with open(word_indexing_path + "/" + configuration["input_tokenizer_path"], "wb") as encoded_pickle:
+            pickle.dump(define_tokenizer(sentences), encoded_pickle)
+        return tokenizer
+
+    with open(word_indexing_path + "/" + configuration["input_tokenizer_path"], "rb") as encoded_pickle:
+        tokenizer = pickle.load(encoded_pickle)
+    return tokenizer
+
+
+def define_output_tokenizer(sentences, configuration):
+    word_indexing_path = "./" + configuration["data_name"] + configuration["pickles_dir"]
+    if configuration["save_tokenizer"]:
+        tokenizer = define_tokenizer(sentences)
+        with open(word_indexing_path + "/" + configuration["output_tokenizer_path"], "wb") as encoded_pickle:
+            pickle.dump(define_tokenizer(sentences), encoded_pickle)
+        return tokenizer
+
+    with open(word_indexing_path + "/" + configuration["output_tokenizer_path"], "rb") as encoded_pickle:
+        tokenizer = pickle.load(encoded_pickle)
+    return tokenizer
 
 
 def preprocess_data(data):
@@ -564,14 +589,14 @@ def preprocess_data(data):
     data.train_bbox_categories_list, data.train_output_sentences_list = wrap_text_in_start_and_stop(train_dataset)
 
     # tokenize the input bounding box categories(input language)
-    data.input_tokenizer = define_tokenizer(data.train_bbox_categories_list)
+    data.input_tokenizer = define_input_tokenizer(data.train_bbox_categories_list, data.configuration)
     data.input_vocab_size = len(data.input_tokenizer.word_index) + 1
     data.max_input_length, max_input_index = get_max_length(data.train_bbox_categories_list)
     print("Input vocab size: %g" % data.input_vocab_size)
     print("Length of longest sentence in the input: %g" % data.max_input_length)
     print("Value of longest sentence in the input:")
     print(data.train_bbox_categories_list[max_input_index])
-    data.output_tokenizer = define_tokenizer(data.train_output_sentences_list)
+    data.output_tokenizer = define_output_tokenizer(data.train_output_sentences_list)
     data.output_vocab_size = len(data.output_tokenizer.word_index) + 1
     data.max_output_length, max_output_index = get_max_length(data.train_output_sentences_list)
     print("Output vocab size: %g" % data.output_vocab_size)
