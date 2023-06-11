@@ -240,7 +240,7 @@ def wrap_text_in_start_and_stop(train_dataset):
     bbox_categories_list = []
     output_sentences_list = []
     for pair in train_dataset:
-        bbox_categories = pair["bbox_categories"]
+        bbox_categories = set(pair["bbox_categories"])
         bbox_categories = ' '.join(map(str, bbox_categories))
 
         output_sentences = pair["captions"]
@@ -596,7 +596,7 @@ def preprocess_data(data):
     print("Length of longest sentence in the input: %g" % data.max_input_length)
     print("Value of longest sentence in the input:")
     print(data.train_bbox_categories_list[max_input_index])
-    data.output_tokenizer = define_output_tokenizer(data.train_output_sentences_list)
+    data.output_tokenizer = define_output_tokenizer(data.train_output_sentences_list, data.configuration)
     data.output_vocab_size = len(data.output_tokenizer.word_index) + 1
     data.max_output_length, max_output_index = get_max_length(data.train_output_sentences_list)
     print("Output vocab size: %g" % data.output_vocab_size)
