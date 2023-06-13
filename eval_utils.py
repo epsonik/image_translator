@@ -8,7 +8,7 @@ import time
 
 import numpy as np
 from keras.preprocessing.sequence import pad_sequences
-from config import general
+from config_translator import general
 import csv
 from tensorflow.keras.utils import to_categorical
 
@@ -158,8 +158,6 @@ def prepare_for_evaluation(data, model):
 
         st = time.time()
         generated = translate_sentence(model, data, pair["bbox_categories"])
-        print("generated sentences")
-        print(generated)
         et = time.time()
         # get the execution time
         elapsed_time = et - st
@@ -200,9 +198,9 @@ def word_for_id(integer, tokenizer):
 
 
 def translate_sentence(model, data, bbox_categories):
+    print("BBox categories")
     print(bbox_categories)
     source = encode_sequences(data.input_tokenizer, data.max_input_length, [bbox_categories])
-    print(source.shape)
     prediction = model.predict(source, verbose=0)[0]
     integers = [np.argmax(vector) for vector in prediction]
 
