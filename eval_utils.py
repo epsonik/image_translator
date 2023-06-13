@@ -147,16 +147,17 @@ def prepare_for_evaluation(data, model):
     print("Preparing for evaluation")
     # calculation of metrics for test images dataset
     index = 0
-    for image_id in data.test_dataset.keys():
+    for pair in data.test_dataset:
+        image_id = pair["image_id"]
         expected[image_id] = []
 
         # Put ground truth captions to the structure accepted by evaluation framework.
-        for desc in data.test_dataset[image_id]["captions"]:
+        for desc in pair["captions"]:
             expected[image_id].append({"image_id": image_id, "caption": desc})
         # Predict captions
 
         st = time.time()
-        generated = translate_sentence(model, data.output_tokenizer, data, image_id)
+        generated = translate_sentence(model, data.output_tokenizer, data, pair)
         print("generated sentences")
         print(generated)
         et = time.time()
@@ -198,9 +199,8 @@ def word_for_id(integer, tokenizer):
     return None
 
 
-def translate_sentence(model, tokenizer, data, image_id):
-    bbox_categories = set(data.test_dataset[image_id]["bbox_categories"])
-    bbox_categories = ' '.join(map(str, bbox_categories))
+def translate_sentence(model, tokenizer, data, pair):
+    bbox_categories = ' '.join(map(str, pair["bbox_categories"]))
     source = encode_sequences(data.input_tokenizer, data.max_input_length, [bbox_categories])
 
     source = source.reshape((1, source.shape[0]))
