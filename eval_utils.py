@@ -158,6 +158,7 @@ def prepare_for_evaluation(data, model):
 
         st = time.time()
         generated = translate_sentence(model, data, pair["bbox_categories"])
+        print(generated)
         et = time.time()
         # get the execution time
         elapsed_time = et - st
