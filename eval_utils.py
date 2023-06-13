@@ -211,7 +211,8 @@ def translate_sentence(model, data, bbox_categories):
         word = word_for_id(i, data.output_tokenizer)
         if word is None:
             break
-        target.append(word)
+        if word not in [general["START"], general["STOP"]]:
+            target.append(word)
     return ' '.join(target)
 
 
