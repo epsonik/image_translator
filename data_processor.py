@@ -585,7 +585,7 @@ def define_output_tokenizer(sentences, configuration):
 
 def preprocess_data(data):
     create_dir_structure(data.configuration)
-    train_dataset, test_dataset, val_datatset, all_dataset = load_data(data)
+    train_dataset, data.test_dataset, val_datatset, all_dataset = load_data(data)
     data.train_bbox_categories_list, data.train_output_sentences_list = wrap_text_in_start_and_stop(train_dataset)
 
     # tokenize the input bounding box categories(input language)

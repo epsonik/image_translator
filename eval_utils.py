@@ -113,7 +113,7 @@ def greedySearch(photo, model, wordtoix, ixtoword, max_length):
     return final
 
 
-def prepare_for_evaluation(encoder_test_sequences, test_captions_mapping, data, model):
+def prepare_for_evaluation(data, model):
     """
     Method to put ground truth captions and results to the structure accepted by evaluation framework
 
@@ -142,24 +142,23 @@ def prepare_for_evaluation(encoder_test_sequences, test_captions_mapping, data, 
 
     """
     # Get all image-ids from test dataset
-    test_pics = list(test_captions_mapping.keys())
     expected = dict()
     results = dict()
     print("Preparing for evaluation")
     # calculation of metrics for test images dataset
     index = 0
-    for j in range(0, len(encoder_test_sequences)):
-        input_seq = encoder_test_sequences[j:j + 1]
-        image_id = test_pics[j]
+    for image_id in data.test_dataset.keys():
         expected[image_id] = []
 
         # Put ground truth captions to the structure accepted by evaluation framework.
-        for desc in test_captions_mapping[image_id]:
+        for desc in data.test_dataset[image_id]["captions"]:
             expected[image_id].append({"image_id": image_id, "caption": desc})
         # Predict captions
 
         st = time.time()
-        generated = translate_sentence(input_seq, data.max_output_length, data.input_tokenizer, data.output_tokenizer, model)
+        generated = translate_sentence(model, data.output_tokenizer, data, image_id)
+        print("generated sentences")
+        print(generated)
         et = time.time()
         # get the execution time
         elapsed_time = et - st
@@ -192,21 +191,29 @@ def encode_output(sequences, vocab_size):
     return y
 
 
-def translate_sentence(input_sentence, max_output_length, input_tokenizer, output_tokenizer, model):
-    output_vocabulary_lookup = {v: k for k, v in output_tokenizer.word_index.items()}
-    tokenized_input_sentence = encode_sequences(input_tokenizer, max_output_length, input_sentence)
-    decoded_sentence = general["START"]
-    for i in range(max_output_length):
-        tokenized_target_sentence = encode_sequences(output_tokenizer, max_output_length, decoded_sentence)
-        predictions = model.predict([tokenized_input_sentence, tokenized_target_sentence])
+def word_for_id(integer, tokenizer):
+    for word, index in tokenizer.word_index.items():
+        if index == integer:
+            return word
+    return None
 
-        sampled_token_index = np.argmax(predictions)
-        sampled_token = output_vocabulary_lookup[sampled_token_index]
-        decoded_sentence += " " + sampled_token
 
-        if sampled_token == general["STOP"]:
+def translate_sentence(model, tokenizer, data, image_id):
+    bbox_categories = set(data.test_dataset[image_id]["bbox_categories"])
+    bbox_categories = ' '.join(map(str, bbox_categories))
+    source = encode_sequences(data.input_tokenizer, data.max_input_length, [bbox_categories])
+
+    source = source.reshape((1, source.shape[0]))
+    prediction = model.predict(source, verbose=0)[0]
+    integers = [np.argmax(vector) for vector in prediction]
+
+    target = list()
+    for i in integers:
+        word = word_for_id(i, tokenizer)
+        if word is None:
             break
-    return decoded_sentence
+        target.append(word)
+    return ' '.join(target)
 
 
 def generate_report(results_path):
