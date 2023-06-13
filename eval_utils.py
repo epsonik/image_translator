@@ -157,7 +157,7 @@ def prepare_for_evaluation(data, model):
         # Predict captions
 
         st = time.time()
-        generated = translate_sentence(model, data.output_tokenizer, data, pair["bbox_categories"])
+        generated = translate_sentence(model, data, pair["bbox_categories"])
         print("generated sentences")
         print(generated)
         et = time.time()
@@ -199,17 +199,16 @@ def word_for_id(integer, tokenizer):
     return None
 
 
-def translate_sentence(model, tokenizer, data, bbox_categories):
-    bbox_categories = set(' '.join(map(str, bbox_categories)))
-    source = encode_sequences(data.input_tokenizer, data.max_input_length, bbox_categories)
-
-    source = source.reshape((1, source.shape[0]))
+def translate_sentence(model, data, bbox_categories):
+    print(bbox_categories)
+    source = encode_sequences(data.input_tokenizer, data.max_input_length, [bbox_categories])
+    print(source.shape)
     prediction = model.predict(source, verbose=0)[0]
     integers = [np.argmax(vector) for vector in prediction]
 
     target = list()
     for i in integers:
-        word = word_for_id(i, tokenizer)
+        word = word_for_id(i, data.output_tokenizer)
         if word is None:
             break
         target.append(word)
