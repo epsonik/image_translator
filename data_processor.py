@@ -23,6 +23,7 @@ from config_translator import glove
 import string
 import re
 from unicodedata import normalize
+from keras.preprocessing.sequence import pad_sequences
 import json
 
 
@@ -238,7 +239,8 @@ def wrap_captions_in_start_stop(training_captions):
 
 def wrap_text_in_start_and_stop(train_dataset):
     bbox_categories_list = []
-    output_sentences_list = []
+    output_sentences_list_with_stop = []
+    output_sentences_list_with_start = []
     for pair in train_dataset:
         bbox_categories = set(pair["bbox_categories"])
         bbox_categories = ' '.join(map(str, bbox_categories))
@@ -246,16 +248,19 @@ def wrap_text_in_start_and_stop(train_dataset):
         output_sentences = pair["captions"]
         output_sentences = clear(output_sentences)
         for sentence in output_sentences:
-            output_sentence = general['START'] + " " + sentence + " " + general['STOP']
-            output_sentences_list.append(output_sentence)
+            output_sentences_list_with_stop.append(sentence + " " + general['STOP'])
+            output_sentences_list_with_start.append(general['START'] + " " + sentence)
             bbox_categories_list.append(bbox_categories)
     print("Number of bbox sentences:", len(bbox_categories_list))
-    print("Number of sentences:", len(output_sentences_list))
+    print("Number of sentences with start: ", len(output_sentences_list_with_start))
+    print("Number of sentences with stop: ", len(output_sentences_list_with_stop))
     print("Sample Bboxes")
     print(bbox_categories_list[0:10])
-    print("Sample sentences")
-    print(output_sentences_list[0:10])
-    return bbox_categories_list, output_sentences_list
+    print("Sample sentences with start")
+    print(output_sentences_list_with_start[0:10])
+    print("Sample sentences with stop")
+    print(output_sentences_list_with_stop[0:10])
+    return bbox_categories_list, output_sentences_list_with_start, output_sentences_list_with_stop
 
 
 def preprocess(image_path, preprocess_input_function, images_processor):
@@ -586,26 +591,48 @@ def define_output_tokenizer(sentences, configuration):
 def preprocess_data(data):
     create_dir_structure(data.configuration)
     train_dataset, data.test_dataset, val_datatset, all_dataset = load_data(data)
-    data.train_bbox_categories_list, data.train_output_sentences_list = wrap_text_in_start_and_stop(train_dataset)
+
+    data.train_bbox_categories_list, \
+    data.output_sentences_list_with_start, \
+    data.output_sentences_list_with_stop = wrap_text_in_start_and_stop(train_dataset)
 
     # tokenize the input bounding box categories(input language)
     data.input_tokenizer = define_input_tokenizer(data.train_bbox_categories_list, data.configuration)
-    data.input_vocab_size = len(data.input_tokenizer.word_index) + 1
-    data.max_input_length, max_input_index = get_max_length(data.train_bbox_categories_list)
+    input_integer_seq = data.input_tokenizer.texts_to_sequences(data.train_bbox_categories_list)
+    word2idx_inputs = data.input_tokenizer.word_index
+
+    input_vocab_size = len(data.input_tokenizer.word_index)
+    data.max_input_length, max_input_index = get_max_length(input_integer_seq)
     print("Input vocab size: %g" % data.input_vocab_size)
     print("Length of longest sentence in the input: %g" % data.max_input_length)
     print("Value of longest sentence in the input:")
     print(data.train_bbox_categories_list[max_input_index])
-    data.output_tokenizer = define_output_tokenizer(data.train_output_sentences_list, data.configuration)
-    data.output_vocab_size = len(data.output_tokenizer.word_index) + 1
-    data.max_output_length, max_output_index = get_max_length(data.train_output_sentences_list)
+
+    data.output_tokenizer = define_output_tokenizer(
+        [data.data.output_sentences_list_with_start + data.output_sentences_list_with_stop], data.configuration)
+    # output_integer_seq
+    output_with_stop_integer_seq = data.output_tokenizer.texts_to_sequences(data.output_sentences_list_with_stop)
+    # output_input_integer_seq
+    output_with_start_integer_seq = data.output_tokenizer.texts_to_sequences(data.output_sentences_list_with_start)
+    word2idx_outputs = data.output_tokenizer.word_index
+    data.output_vocab_size = len(word2idx_outputs) + 1
+    data.max_output_length, max_output_index = get_max_length(output_with_start_integer_seq)
     print("Output vocab size: %g" % data.output_vocab_size)
     print("Length of longest sentence in the output: %g" % data.max_output_length)
     print("Value of longest sentence in the output:")
     print(data.train_output_sentences_list[max_output_index])
 
+    encoder_input_sequences = pad_sequences(input_integer_seq, maxlen=data.max_input_length)
+    print("encoder_input_sequences.shape:", encoder_input_sequences.shape)
+    print("encoder_input_sequences[172]:", encoder_input_sequences[7])
+
+    decoder_input_sequences = pad_sequences(output_with_start_integer_seq, maxlen=data.max_output_length,
+                                            padding='post')
+    print("decoder_input_sequences.shape:", decoder_input_sequences.shape)
+    print("decoder_input_sequences[172]:", decoder_input_sequences[17])
+
     print("Glove used")
-    data.embedding_matrix_input = get_embedding_matrix(data.input_vocab_size, data.input_tokenizer.word_index,
+    data.embedding_matrix_input = get_embedding_matrix(input_vocab_size, word2idx_inputs + 1,
                                                        glove["word_embedings_path"],
                                                        glove["embedings_dim"])
     return data

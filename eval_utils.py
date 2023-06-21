@@ -198,21 +198,30 @@ def word_for_id(integer, tokenizer):
     return None
 
 
-def translate_sentence(model, data, bbox_categories):
-    print("BBox categories")
-    print(bbox_categories)
-    source = encode_sequences(data.input_tokenizer, data.max_input_length, [bbox_categories])
-    prediction = model.predict(source, verbose=0)[0]
-    integers = [np.argmax(vector) for vector in prediction]
+def translate_sentence(input_seq):
+    states_value = encoder_model.predict(input_seq)
+    target_seq = np.zeros((1, 1))
+    target_seq[0, 0] = word2idx_outputs['<sos>']
+    eos = word2idx_outputs['<eos>']
+    output_sentence = []
 
-    target = list()
-    for i in integers:
-        word = word_for_id(i, data.output_tokenizer)
-        if word is None:
+    for _ in range(max_out_len):
+        output_tokens, h, c = decoder_model.predict([target_seq] + states_value)
+        idx = np.argmax(output_tokens[0, 0, :])
+
+        if eos == idx:
             break
-        if word not in [general["START"], general["STOP"]]:
-            target.append(word)
-    return ' '.join(target)
+
+        word = ''
+
+        if idx > 0:
+            word = idx2word_target[idx]
+            output_sentence.append(word)
+
+        target_seq[0, 0] = idx
+        states_value = [h, c]
+
+    return ' '.join(output_sentence)
 
 
 def generate_report(results_path):
