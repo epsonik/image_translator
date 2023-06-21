@@ -601,9 +601,8 @@ def preprocess_data(data):
     input_integer_seq = data.input_tokenizer.texts_to_sequences(data.train_bbox_categories_list)
     word2idx_inputs = data.input_tokenizer.word_index
 
-    data.input_vocab_size = len(data.input_tokenizer.word_index)
     data.max_input_length = get_max_length(input_integer_seq)
-    print("Input vocab size: %g" % data.input_vocab_size)
+    print("Input vocab size: %g" % len(word2idx_inputs))
     print("Length of longest sentence in the input: %g" % data.max_input_length)
 
     data.output_tokenizer = define_output_tokenizer(
@@ -613,9 +612,9 @@ def preprocess_data(data):
     # output_input_integer_seq
     output_with_start_integer_seq = data.output_tokenizer.texts_to_sequences(data.output_sentences_list_with_start)
     word2idx_outputs = data.output_tokenizer.word_index
-    data.output_vocab_size = len(word2idx_outputs) + 1
+    num_words_output = len(word2idx_outputs) + 1
     data.max_output_length = get_max_length(output_with_start_integer_seq)
-    print("Output vocab size: %g" % data.output_vocab_size)
+    print("Output vocab size: %g" % len(word2idx_outputs))
     print("Length of longest sentence in the output: %g" % data.max_output_length)
 
     data.encoder_input_sequences = pad_sequences(input_integer_seq, maxlen=data.max_input_length)
@@ -628,7 +627,7 @@ def preprocess_data(data):
     print("decoder_input_sequences[172]:", data.decoder_input_sequences[17])
 
     print("Glove used")
-    data.embedding_matrix_input = get_embedding_matrix(data.input_vocab_size, word2idx_inputs + 1,
+    data.embedding_matrix_input = get_embedding_matrix(len(word2idx_inputs) + 1, word2idx_inputs,
                                                        glove["word_embedings_path"],
                                                        glove["embedings_dim"])
     return data
