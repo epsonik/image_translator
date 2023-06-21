@@ -606,7 +606,7 @@ def preprocess_data(data):
     print("Length of longest sentence in the input: %s" % data.max_input_length)
 
     data.output_tokenizer = define_output_tokenizer(
-        [data.output_sentences_list_with_start + data.output_sentences_list_with_stop], data.configuration)
+        data.output_sentences_list_with_start + data.output_sentences_list_with_stop, data.configuration)
     # output_integer_seq
     output_with_stop_integer_seq = data.output_tokenizer.texts_to_sequences(data.output_sentences_list_with_stop)
     # output_input_integer_seq
