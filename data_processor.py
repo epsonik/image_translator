@@ -601,7 +601,7 @@ def preprocess_data(data):
     input_integer_seq = data.input_tokenizer.texts_to_sequences(data.train_bbox_categories_list)
     word2idx_inputs = data.input_tokenizer.word_index
 
-    input_vocab_size = len(data.input_tokenizer.word_index)
+    data.input_vocab_size = len(data.input_tokenizer.word_index)
     data.max_input_length = get_max_length(input_integer_seq)
     print("Input vocab size: %g" % data.input_vocab_size)
     print("Length of longest sentence in the input: %g" % data.max_input_length)
@@ -618,17 +618,17 @@ def preprocess_data(data):
     print("Output vocab size: %g" % data.output_vocab_size)
     print("Length of longest sentence in the output: %g" % data.max_output_length)
 
-    encoder_input_sequences = pad_sequences(input_integer_seq, maxlen=data.max_input_length)
-    print("encoder_input_sequences.shape:", encoder_input_sequences.shape)
-    print("encoder_input_sequences[172]:", encoder_input_sequences[7])
+    data.encoder_input_sequences = pad_sequences(input_integer_seq, maxlen=data.max_input_length)
+    print("encoder_input_sequences.shape:", data.encoder_input_sequences.shape)
+    print("encoder_input_sequences[172]:", data.encoder_input_sequences[7])
 
-    decoder_input_sequences = pad_sequences(output_with_start_integer_seq, maxlen=data.max_output_length,
-                                            padding='post')
-    print("decoder_input_sequences.shape:", decoder_input_sequences.shape)
-    print("decoder_input_sequences[172]:", decoder_input_sequences[17])
+    data.decoder_input_sequences = pad_sequences(output_with_start_integer_seq, maxlen=data.max_output_length,
+                                                 padding='post')
+    print("decoder_input_sequences.shape:", data.decoder_input_sequences.shape)
+    print("decoder_input_sequences[172]:", data.decoder_input_sequences[17])
 
     print("Glove used")
-    data.embedding_matrix_input = get_embedding_matrix(input_vocab_size, word2idx_inputs + 1,
+    data.embedding_matrix_input = get_embedding_matrix(data.input_vocab_size, word2idx_inputs + 1,
                                                        glove["word_embedings_path"],
                                                        glove["embedings_dim"])
     return data
