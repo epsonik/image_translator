@@ -602,8 +602,8 @@ def preprocess_data(data):
     word2idx_inputs = data.input_tokenizer.word_index
 
     data.max_input_length = get_max_length(input_integer_seq)
-    print("Input vocab size: %g" % len(word2idx_inputs))
-    print("Length of longest sentence in the input: %g" % data.max_input_length)
+    print("Input vocab size: %s" % len(word2idx_inputs))
+    print("Length of longest sentence in the input: %s" % data.max_input_length)
 
     data.output_tokenizer = define_output_tokenizer(
         [data.output_sentences_list_with_start + data.output_sentences_list_with_stop], data.configuration)
@@ -614,7 +614,7 @@ def preprocess_data(data):
     word2idx_outputs = data.output_tokenizer.word_index
     num_words_output = len(word2idx_outputs) + 1
     data.max_output_length = get_max_length(output_with_start_integer_seq)
-    print("Output vocab size: %g" % len(word2idx_outputs))
+    print("Output vocab size: %s" % len(word2idx_outputs))
     print("Length of longest sentence in the output: %g" % data.max_output_length)
 
     data.encoder_input_sequences = pad_sequences(input_integer_seq, maxlen=data.max_input_length)
