@@ -399,8 +399,8 @@ def get_max_length(captions):
     -------
         Number of the words in longest captions
     """
-    a = max((len(d.split()), i) for i, d in enumerate(captions))
-    return a[0], a[1]
+    a = max(len(sen) for sen in captions)
+    return a
 
 
 def count_words_and_threshold(all_train_captions):
@@ -602,11 +602,9 @@ def preprocess_data(data):
     word2idx_inputs = data.input_tokenizer.word_index
 
     input_vocab_size = len(data.input_tokenizer.word_index)
-    data.max_input_length, max_input_index = get_max_length(input_integer_seq)
+    data.max_input_length = get_max_length(input_integer_seq)
     print("Input vocab size: %g" % data.input_vocab_size)
     print("Length of longest sentence in the input: %g" % data.max_input_length)
-    print("Value of longest sentence in the input:")
-    print(data.train_bbox_categories_list[max_input_index])
 
     data.output_tokenizer = define_output_tokenizer(
         [data.data.output_sentences_list_with_start + data.output_sentences_list_with_stop], data.configuration)
@@ -616,11 +614,9 @@ def preprocess_data(data):
     output_with_start_integer_seq = data.output_tokenizer.texts_to_sequences(data.output_sentences_list_with_start)
     word2idx_outputs = data.output_tokenizer.word_index
     data.output_vocab_size = len(word2idx_outputs) + 1
-    data.max_output_length, max_output_index = get_max_length(output_with_start_integer_seq)
+    data.max_output_length = get_max_length(output_with_start_integer_seq)
     print("Output vocab size: %g" % data.output_vocab_size)
     print("Length of longest sentence in the output: %g" % data.max_output_length)
-    print("Value of longest sentence in the output:")
-    print(data.train_output_sentences_list[max_output_index])
 
     encoder_input_sequences = pad_sequences(input_integer_seq, maxlen=data.max_input_length)
     print("encoder_input_sequences.shape:", encoder_input_sequences.shape)
