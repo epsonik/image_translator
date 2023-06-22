@@ -617,16 +617,17 @@ def preprocess_data(data):
     print("Output vocab size: %s" % len(word2idx_outputs))
     print("Length of longest sentence in the output: %g" % data.max_output_length)
 
-    data.encoder_input_sequences = input_integer_seq
-    print("encoder_input_sequences:", data.encoder_input_sequences[0:7])
-    print("encoder_input_sequences[7]:", data.encoder_input_sequences[7])
+    data.encoder_input_sequences = pad_sequences(input_integer_seq, maxlen=data.max_input_length)
+    print("encoder_input_sequences.shape:", data.encoder_input_sequences.shape)
+    print("encoder_input_sequences[172]:", data.encoder_input_sequences[7])
 
-    data.decoder_input_sequences = output_with_start_integer_seq
-    print("decoder_input_sequences:", data.decoder_input_sequences[0:7])
+    data.decoder_input_sequences = pad_sequences(output_with_start_integer_seq, maxlen=data.max_output_length,
+                                                 padding='post')
+    print("decoder_input_sequences.shape:", data.decoder_input_sequences.shape)
     print("decoder_input_sequences[172]:", data.decoder_input_sequences[17])
 
     print("Glove used")
-    data.num_words = len(word2idx_inputs) + 1
+    data.num_words=len(word2idx_inputs) + 1
     data.embedding_matrix_input = get_embedding_matrix(data.num_words, word2idx_inputs,
                                                        glove["word_embedings_path"],
                                                        glove["embedings_dim"])
