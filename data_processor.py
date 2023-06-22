@@ -622,7 +622,7 @@ def preprocess_data(data):
     print("encoder_input_sequences[7]:", data.encoder_input_sequences[7])
 
     data.decoder_input_sequences = output_with_start_integer_seq
-    print("decoder_input_sequences.shape:", data.decoder_input_sequences.shape)
+    print("decoder_input_sequences:", data.decoder_input_sequences[0:7])
     print("decoder_input_sequences[172]:", data.decoder_input_sequences[17])
 
     print("Glove used")
