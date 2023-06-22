@@ -113,7 +113,7 @@ def greedySearch(photo, model, wordtoix, ixtoword, max_length):
     return final
 
 
-def prepare_for_evaluation(data, model):
+def prepare_for_evaluation(data, model, decoder_model):
     """
     Method to put ground truth captions and results to the structure accepted by evaluation framework
 
@@ -157,7 +157,8 @@ def prepare_for_evaluation(data, model):
         # Predict captions
 
         st = time.time()
-        generated = translate_sentence(model, data, pair["bbox_categories"])
+        generated = translate_sentence(pair["bbox_categories"], data.word2idx_outputs, data.max_output_length, model,
+                                       decoder_model)
         print(generated)
         et = time.time()
         # get the execution time
@@ -198,11 +199,12 @@ def word_for_id(integer, tokenizer):
     return None
 
 
-def translate_sentence(input_seq):
+def translate_sentence(input_seq, word2idx_outputs, max_out_len, encoder_model, decoder_model):
+    idx2word_target = {v: k for k, v in word2idx_outputs.items()}
     states_value = encoder_model.predict(input_seq)
     target_seq = np.zeros((1, 1))
-    target_seq[0, 0] = word2idx_outputs['<sos>']
-    eos = word2idx_outputs['<eos>']
+    target_seq[0, 0] = word2idx_outputs[general['START']]
+    eos = word2idx_outputs[general['STOP']]
     output_sentence = []
 
     for _ in range(max_out_len):
