@@ -618,8 +618,8 @@ def preprocess_data(data):
     print("Length of longest sentence in the output: %g" % data.max_output_length)
 
     data.encoder_input_sequences = input_integer_seq
-    print("encoder_input_sequences.shape:", data.encoder_input_sequences.shape)
-    print("encoder_input_sequences[172]:", data.encoder_input_sequences[7])
+    print("encoder_input_sequences:", data.encoder_input_sequences[0:7])
+    print("encoder_input_sequences[7]:", data.encoder_input_sequences[7])
 
     data.decoder_input_sequences = output_with_start_integer_seq
     print("decoder_input_sequences.shape:", data.decoder_input_sequences.shape)
